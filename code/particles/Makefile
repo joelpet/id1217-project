@@ -54,20 +54,18 @@ mpi_objs=$(addprefix $(bin_dir)/,$(mpi_srcs:.cpp=.o))
 all: serial pthreads openmp mpi
 clean:
 	rm -f $(bin_dir)/* serial pthreads openmp mpi
+$(bin_dir):
+	-mkdir $@
 
 # TODO Create a multiple-target recipe for these targets.
-serial: $(serial_objs) 
-	-mkdir $(bin_dir)
-	$(CXX) $(LDFLAGS) $^ -o $@		
-pthreads: $(pthreads_objs)
-	-mkdir $(bin_dir)
-	$(CXX) $(LDFLAGS) $^ -o $@ -lpthread
-openmp: $(openmp_objs)
-	-mkdir $(bin_dir)
-	$(CXX) $(LDFLAGS) $^ -o $@ -fopenmp
-mpi: $(mpi_objs)
-	-mkdir $(bin_dir)
-	$(MPCC) $(LDFLAGS) $^ -o $@
+serial: $(bin_dir) $(serial_objs)
+	$(CXX) $(LDFLAGS) $(filter %.o, $^) -o $@
+pthreads: $(bin_dir) $(pthreads_objs)
+	$(CXX) $(LDFLAGS) $(filter %.o, $^) -o $@ -lpthread
+openmp: $(bin_dir) $(openmp_objs)
+	$(CXX) $(LDFLAGS) $(filter %.o, $^) -o $@ -fopenmp
+mpi: $(bin_dir) $(mpi_objs)
+	$(MPCC) $(LDFLAGS) $(filter %.o, $^) -o $@
 
 # TODO Create a multiple-target recipe for these targets.
 $(bin_dir)/mpi.o: mpi.cpp
