@@ -1,0 +1,5 @@
+bin/
+serial
+pthreads
+openmp
+mpi
