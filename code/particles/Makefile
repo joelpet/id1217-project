@@ -32,7 +32,7 @@ LDFLAGS=
 bin_dir=bin
 
 # Source files to compile and link together for the different programs.
-serial_srcs=common.cpp serial.cpp
+serial_srcs=common.cpp serial.cpp grid_hash_set.cpp
 pthreads_srcs=common.cpp pthreads.cpp
 openmp_srcs=common.cpp openmp.cpp
 mpi_srcs=common.cpp mpi.cpp

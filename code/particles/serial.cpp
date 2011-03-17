@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <math.h>
 #include "common.h"
+#include "grid_hash_set.h"
 
 //
 //  benchmarking program
@@ -26,6 +27,9 @@ int main( int argc, char **argv )
     particle_t *particles = (particle_t*) malloc( n * sizeof(particle_t) );
     set_size( n );
     init_particles( n, particles );
+
+    particles::GridHashSet grid(n);
+    grid.insert(particles[0]);
     
     //
     //  simulate a number of time steps
