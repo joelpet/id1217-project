@@ -1,6 +1,8 @@
 #ifndef __CS267_COMMON_H__
 #define __CS267_COMMON_H__
 
+#include <stdio.h>
+
 inline int min( int a, int b ) { return a < b ? a : b; }
 inline int max( int a, int b ) { return a > b ? a : b; }
 
@@ -15,12 +17,12 @@ const int SAVEFREQ = 10;
 //
 typedef struct 
 {
-  double x;
-  double y;
-  double vx;
-  double vy;
-  double ax;
-  double ay;
+    double x;
+    double y;
+    double vx;
+    double vy;
+    double ax;
+    double ay;
 } particle_t;
 
 //

@@ -50,14 +50,14 @@ void set_size( int n )
 void init_particles( int n, particle_t *p )
 {
     srand48( time( NULL ) );
-        
+
     int sx = (int)ceil(sqrt((double)n));
     int sy = (n+sx-1)/sx;
-    
+
     int *shuffle = (int*)malloc( n * sizeof(int) );
     for( int i = 0; i < n; i++ )
         shuffle[i] = i;
-    
+
     for( int i = 0; i < n; i++ ) 
     {
         //
@@ -66,7 +66,7 @@ void init_particles( int n, particle_t *p )
         int j = lrand48()%(n-i);
         int k = shuffle[j];
         shuffle[j] = shuffle[n-i-1];
-        
+
         //
         //  distribute particles evenly to ensure proper spacing
         //
