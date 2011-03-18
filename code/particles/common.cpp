@@ -1,12 +1,14 @@
-#include <stdlib.h>
-#include <stdio.h>
+#include "common.h"
+#include "grid_hash_set.h"
 #include <assert.h>
 #include <float.h>
-#include <string.h>
+#include <iostream>
 #include <math.h>
-#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
-#include "common.h"
+#include <time.h>
 
 double size;
 
@@ -47,7 +49,7 @@ void set_size( int n )
 //
 //  Initialize the particle positions and velocities
 //
-void init_particles( int n, particle_t *p )
+void init_particles(int n, particle_t p[])
 {
     srand48( time( NULL ) );
 
@@ -80,6 +82,18 @@ void init_particles( int n, particle_t *p )
         p[i].vy = drand48()*2-1;
     }
     free( shuffle );
+}
+
+/**
+ * Inserts the n particles into the specified grid hash set.
+ */
+void insert_into_grid(int n, particle_t p[], particles::GridHashSet* grid) {
+
+    for (int i = 0; i < n; ++i) {
+        std::cout << p[i].x << " " << p[i].y << std::endl;
+        grid->insert(p[i]);
+    }
+
 }
 
 //

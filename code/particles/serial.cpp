@@ -28,8 +28,8 @@ int main( int argc, char **argv )
     set_size( n );
     init_particles( n, particles );
 
-    particles::GridHashSet grid(n);
-    grid.insert(particles[0]);
+    particles::GridHashSet* grid = new particles::GridHashSet(n, size);
+    insert_into_grid(n, particles, grid);
     
     //
     //  simulate a number of time steps
@@ -63,6 +63,7 @@ int main( int argc, char **argv )
     
     printf( "n = %d, simulation time = %g seconds\n", n, simulation_time );
     
+    delete grid;
     free( particles );
     if( fsave )
         fclose( fsave );

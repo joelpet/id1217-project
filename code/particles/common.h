@@ -3,8 +3,17 @@
 
 #include <stdio.h>
 
+namespace particles {
+    class GridHashSet;
+}
+
 inline int min( int a, int b ) { return a < b ? a : b; }
 inline int max( int a, int b ) { return a > b ? a : b; }
+
+/**
+ * Size of the particle simulation area's sides.
+ */
+extern double size;
 
 //
 //  saving parameters
@@ -34,7 +43,8 @@ double read_timer( );
 //  simulation routines
 //
 void set_size( int n );
-void init_particles( int n, particle_t *p );
+void init_particles( int n, particle_t p[] );
+void insert_into_grid(int n, particle_t p[], particles::GridHashSet*);
 void apply_force( particle_t &particle, particle_t &neighbor );
 void move( particle_t &p );
 
