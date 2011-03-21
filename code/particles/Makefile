@@ -12,7 +12,7 @@ CXX=g++
 MPCC=mpicxx
 
 # Extra flags to give to the C preprocessor and programs that use it (the C and Fortran compilers). 
-CFLAGS=
+CFLAGS=-g
 
 # Extra flags to give to the C++ compiler (both at compiling and linking)
 # Notice: `make CXXFLAGS='-g -O' will replace the value of CXXFLAGS given below
