@@ -79,12 +79,9 @@ void init_particles(int n, particle_t p[])
  * Inserts the n particles into the specified grid hash set.
  */
 void insert_into_grid(int n, particle_t p[], particles::GridHashSet* grid) {
-
     for (int i = 0; i < n; ++i) {
-        std::cout << p[i].x << " " << p[i].y << std::endl;
         grid->insert(p[i]);
     }
-
 }
 
 //
