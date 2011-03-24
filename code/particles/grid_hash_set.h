@@ -20,7 +20,7 @@ namespace particles {
                     //surr_iterator(const surr_iterator &); // Copy-constructor
                     ~surr_iterator();
                     surr_iterator & operator++();
-                    reference operator*() const;
+                    pointer operator*() const;
                     bool operator==(surr_iterator const &);
                     bool operator!=(surr_iterator const &);
                 private:

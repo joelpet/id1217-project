@@ -38,12 +38,12 @@ namespace particles {
     }
 
     /**
-     * Inserts the given particle p into this grid hash set.
+     * Inserts pointer to the given particle p into this grid hash set.
      */
     void GridHashSet::insert(particle_t & p) {
-        std::cout << "Inserting particle at (" << p.x << ", " << p.y;
-        std::cout << ") into row " << get_row(p) << " and column ";
-        std::cout << get_col(p) << "." << std::endl;
+        printf("Inserting particle (%f, %f) into grid [%d][%d].\t", p.x, p.y, get_row(p), get_col(p));
+
+        printf("Size of deque before insertion: %zu\n", (*grids)[get_index(p)].size());
 
         (*grids)[get_index(p)].push_back(&p);
     }
@@ -147,13 +147,16 @@ namespace particles {
 
     /**
      * Prefix ++ operator.
+     *
+     * Guarantees that this iterator will never be in a state where it will
+     * reference a deque iterator that is exhausted.
      */
     GridHashSet::surr_iterator & GridHashSet::surr_iterator::operator++() {
         // Increment the inner dequeu (particles) iterator.
         ++particles_it;
 
-        // If inner iterator
-        if (particles_it == particles_it_end) {
+        // While inner deque iterator points outside the deque.
+        while (particles_it == particles_it_end && !reached_end) {
             // Move to next grid.
             if (++c > bottom_right_col) {
                 c = top_left_col;
@@ -169,15 +172,12 @@ namespace particles {
             }
         }
 
-
-        // TODO vad händer med tomma grids?
-
         return *this;
     }
 
-    GridHashSet::surr_iterator::reference GridHashSet::surr_iterator::operator*() const {
+    GridHashSet::surr_iterator::pointer GridHashSet::surr_iterator::operator*() const {
         // Dereference the internal current deque<particle_t*> iterator.
-        return **particles_it;
+        return *particles_it;
     }
 
     bool GridHashSet::surr_iterator::operator==(surr_iterator const & other) {

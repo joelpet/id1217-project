@@ -32,19 +32,6 @@ int main( int argc, char **argv )
     particles::GridHashSet* grid = new particles::GridHashSet(n, size, cutoff);
     insert_into_grid(n, particles, grid);
 
-    // Debug surr_iterator
-    particles::GridHashSet::surr_iterator neighbors_it;
-    for (neighbors_it = grid->surr_begin(particles[n-1]);
-            neighbors_it != grid->surr_end(particles[n-1]);
-            ++neighbors_it) { 
-
-        particle_t & p = *neighbors_it;
-        printf("Particle (%f, %f) in [%d, %d].\n", p.x, p.y, grid->get_row(p), grid->get_col(p));
-    }
-
-    // TODO remove after debuggin
-    exit(1);
-
 
     //
     //  simulate a number of time steps
@@ -58,21 +45,21 @@ int main( int argc, char **argv )
 
         // Iterate over all grids in the hash grid set.
         std::vector<std::deque<particle_t *> >::iterator grids_it;
-        for (grids_it = grid->grids_begin(); grids_it < grid->grids_end(); ++grids_it) {
+        for (grids_it = grid->grids_begin(); grids_it != grid->grids_end(); ++grids_it) {
+            printf("for grid at %p:\n", &grids_it);
 
             // Iterate over all particles in the current grid. In general, only 1.
             std::deque<particle_t *>::iterator particles_it;
-            for (particles_it = grids_it->begin(); particles_it < grids_it->end(); ++particles_it) {
-                std::cout << (*particles_it)->x << ", " << (*particles_it)->y << std::endl;
+            for (particles_it = grids_it->begin(); particles_it != grids_it->end(); ++particles_it) {
+                printf("\tparticle (%f, %f) in grid [%d][%d]\n", (*particles_it)->x, (*particles_it)->y, grid->get_row(**particles_it), grid->get_col(**particles_it));
 
                 // Iterate over all neighbors in the surrounding of current particle.
                 // This should be constant w.r.t. n.
                 particles::GridHashSet::surr_iterator neighbors_it;
                 for (neighbors_it = grid->surr_begin(**particles_it);
-                        //neighbors_it < grid->surr_end(**particles_it);
-                        ;
+                        neighbors_it != grid->surr_end(**particles_it);
                         ++neighbors_it) { 
-                    break;
+                    printf("\t\tneighbor (%f, %f) in grid [%d][%d]\n", (*neighbors_it)->x, (*neighbors_it)->y, grid->get_row(**neighbors_it), grid->get_col(**neighbors_it));
                 }
             }
 
