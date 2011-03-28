@@ -16,11 +16,15 @@ int main( int argc, char **argv )
         printf( "Options:\n" );
         printf( "-h to see this help\n" );
         printf( "-n <int> to set the number of particles\n" );
+        printf( "-s <int> to set the number of steps in the simulation\n");
         printf( "-o <filename> to specify the output file name\n" );
+        printf( "-f <int> to set the frequency of saving particle coordinates (e.g. each ten's step)");
         return 0;
     }
     
-    int n = read_int( argc, argv, "-n", 1000 );
+    int n = read_int(argc, argv, "-n", 1000);
+    int s = read_int(argc, argv, "-s", NSTEPS);
+    int f = read_int(argc, argv, "-f", SAVEFREQ);
 
     char *savename = read_string( argc, argv, "-o", NULL );
     
@@ -36,7 +40,7 @@ int main( int argc, char **argv )
     //  simulate a number of time steps
     //
     double simulation_time = read_timer( );
-    for( int step = 0; step < NSTEPS; step++ )
+    for( int step = 0; step < s; step++ )
     {
         //
         //  compute forces
@@ -85,7 +89,7 @@ int main( int argc, char **argv )
         //
         //  save if necessary
         //
-        if( fsave && (step%SAVEFREQ) == 0 )
+        if( fsave && (step % f) == 0 )
             save( fsave, n, particles );
     }
     simulation_time = read_timer( ) - simulation_time;
