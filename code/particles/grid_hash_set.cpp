@@ -13,6 +13,8 @@ namespace particles {
      *
      * TODO What's worse; num_grids > n OR average_particle_count > 1 ?
      * Change initialization of num_rows, num_cols accordingly.
+     *
+     * TODO replace deque with list
      */
     GridHashSet::GridHashSet(int n, double size, double cutoff_radius) :
         num_rows(ceil(sqrt(n))), num_cols(ceil(sqrt(n))),
@@ -160,6 +162,24 @@ namespace particles {
         // Initialize the deque particle iterator.
         particles_it = grid->grids->at(grid->get_index(r, c))->begin();
         particles_it_end = grid->grids->at(grid->get_index(r, c))->end();
+
+
+        // While inner deque iterator points nowhere useful.
+        while (particles_it == particles_it_end || *particles_it == NULL) {
+            // Move to next grid.
+            if (++c > bottom_right_col) {
+                c = top_left_col;
+                ++r;
+            }
+
+            if (r > bottom_right_row) {
+                reached_end = true;
+            } else {
+                // Update internal deque (particles) iterators.
+                particles_it = grid->grids->at(grid->get_index(r, c))->begin();
+                particles_it_end = grid->grids->at(grid->get_index(r, c))->end();
+            }
+        }
     }
 
     GridHashSet::surr_iterator::~surr_iterator() {
@@ -175,7 +195,7 @@ namespace particles {
         // Increment the inner dequeu (particles) iterator.
         ++particles_it;
 
-        // While inner deque iterator points outside the deque.
+        // While inner deque iterator points nowhere useful.
         while ((particles_it == particles_it_end || *particles_it == NULL) && !reached_end) {
             // Move to next grid.
             if (++c > bottom_right_col) {
