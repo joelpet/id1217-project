@@ -19,7 +19,12 @@ namespace particles {
         grid_size(size/num_rows),
         num_surrounding_grids(ceil(cutoff_radius/grid_size)) { 
 
-        grids = new std::vector< std::deque<particle_t *> >(num_rows * num_cols);
+        grids = new std::vector<std::deque<particle_t *>*>(num_rows * num_cols);
+
+        std::vector<std::deque<particle_t *>*>::iterator it;
+        for (it = grids->begin(); it != grids->end(); ++it) {
+            *it = new std::deque<particle_t *>();
+        }
 
         std::cout << "Rows: " << num_rows << std::endl;
         std::cout << "Cols: " << num_cols << std::endl;
@@ -34,18 +39,33 @@ namespace particles {
      * Deconstructs this grid hash set.
      */
     GridHashSet::~GridHashSet() {
+
+        std::vector<std::deque<particle_t *>*>::iterator it;
+        for (it = grids->begin(); it != grids->end(); ++it) {
+            delete *it;
+        }
+
         delete grids;
+    }
+
+    /**
+     * Removes all particle pointers from this grid hash set.
+     */
+    void GridHashSet::clear() {
+        std::vector<std::deque<particle_t *>*>::iterator it;
+        for (it = grids->begin(); it != grids->end(); ++it) {
+            (*it)->clear();
+        }
     }
 
     /**
      * Inserts pointer to the given particle p into this grid hash set.
      */
     void GridHashSet::insert(particle_t & p) {
-        printf("Inserting particle (%f, %f) into grid [%d][%d].\t", p.x, p.y, get_row(p), get_col(p));
+        //printf("Inserting particle (%f, %f) into grid [%d][%d].\t", p.x, p.y, get_row(p), get_col(p));
+        //printf("Size of deque before insertion: %zu\n", (*grids)[get_index(p)]->size());
 
-        printf("Size of deque before insertion: %zu\n", (*grids)[get_index(p)].size());
-
-        (*grids)[get_index(p)].push_back(&p);
+        (*grids)[get_index(p)]->push_back(&p);
     }
 
     /**
@@ -53,14 +73,14 @@ namespace particles {
      * the given particle belongs to, including itself.
      */
     std::deque<particle_t *>::iterator GridHashSet::grid_particles_begin(particle_t & p) {
-        return (*grids)[get_index(p)].begin();
+        return (*grids)[get_index(p)]->begin();
     }
 
-    std::vector<std::deque<particle_t *> >::iterator GridHashSet::grids_begin() {
+    std::vector<std::deque<particle_t *>*>::iterator GridHashSet::grids_begin() {
         return grids->begin();
     }
 
-    std::vector<std::deque<particle_t *> >::iterator GridHashSet::grids_end() {
+    std::vector<std::deque<particle_t *>*>::iterator GridHashSet::grids_end() {
         return grids->end();
     }
 
@@ -138,8 +158,8 @@ namespace particles {
         c = top_left_col;
 
         // Initialize the deque particle iterator.
-        particles_it = grid->grids->at(grid->get_index(r, c)).begin();
-        particles_it_end = grid->grids->at(grid->get_index(r, c)).end();
+        particles_it = grid->grids->at(grid->get_index(r, c))->begin();
+        particles_it_end = grid->grids->at(grid->get_index(r, c))->end();
     }
 
     GridHashSet::surr_iterator::~surr_iterator() {
@@ -156,7 +176,7 @@ namespace particles {
         ++particles_it;
 
         // While inner deque iterator points outside the deque.
-        while (particles_it == particles_it_end && !reached_end) {
+        while ((particles_it == particles_it_end || *particles_it == NULL) && !reached_end) {
             // Move to next grid.
             if (++c > bottom_right_col) {
                 c = top_left_col;
@@ -167,8 +187,8 @@ namespace particles {
                 reached_end = true;
             } else {
                 // Update internal deque (particles) iterators.
-                particles_it = grid->grids->at(grid->get_index(r, c)).begin();
-                particles_it_end = grid->grids->at(grid->get_index(r, c)).end();
+                particles_it = grid->grids->at(grid->get_index(r, c))->begin();
+                particles_it_end = grid->grids->at(grid->get_index(r, c))->end();
             }
         }
 

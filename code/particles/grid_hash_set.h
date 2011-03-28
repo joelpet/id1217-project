@@ -38,10 +38,11 @@ namespace particles {
             ~GridHashSet();
             //particle_t& operator() (unsigned row, unsigned col);
             //particle_t const& operator() (unsigned row, unsigned col) const;
+            void clear();
             void insert(particle_t &);
             std::deque<particle_t *>::iterator grid_particles_begin(particle_t &);
-            std::vector<std::deque<particle_t *> >::iterator grids_begin();
-            std::vector<std::deque<particle_t *> >::iterator grids_end();
+            std::vector<std::deque<particle_t *>*>::iterator grids_begin();
+            std::vector<std::deque<particle_t *>*>::iterator grids_end();
             surr_iterator surr_begin(particle_t &);
             surr_iterator surr_end(particle_t &);
             int get_row(particle_t &);
@@ -52,7 +53,7 @@ namespace particles {
             int num_cols;
             double grid_size;
             int num_surrounding_grids;
-            std::vector< std::deque<particle_t *> > * grids;
+            std::vector<std::deque<particle_t *>*>* grids;
 
             void first_surr_index(int&, int&, particle_t&);
             void last_surr_index(int&, int&, particle_t&);
