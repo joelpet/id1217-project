@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-namespace particles {
+namespace prtcl {
     class GridHashSet;
 }
 
@@ -54,7 +54,7 @@ double read_timer( );
 //
 void set_size( int n );
 void init_particles( int n, particle_t p[] );
-void insert_into_grid(int n, particle_t p[], particles::GridHashSet*);
+void insert_into_grid(int n, particle_t p[], prtcl::GridHashSet*);
 void apply_force( particle_t &particle, particle_t &neighbor );
 void move( particle_t &p );
 

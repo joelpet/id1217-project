@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-namespace particles {
+namespace prtcl {
 
     /**
      * Constructs a new grid hash set with the given number of particles and

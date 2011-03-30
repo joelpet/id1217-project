@@ -33,7 +33,7 @@ int main( int argc, char **argv )
     set_size( n );
     init_particles( n, particles );
 
-    particles::GridHashSet* grid = new particles::GridHashSet(n, size, cutoff);
+    prtcl::GridHashSet* grid = new prtcl::GridHashSet(n, size, cutoff);
     insert_into_grid(n, particles, grid);
 
     //
@@ -61,7 +61,7 @@ int main( int argc, char **argv )
 
                 // Iterate over all neighbors in the surrounding of current particle.
                 // This should be constant w.r.t. n.
-                particles::GridHashSet::surr_iterator neighbors_it;
+                prtcl::GridHashSet::surr_iterator neighbors_it;
                 for (neighbors_it = grid->surr_begin(**particles_it);
                         neighbors_it != grid->surr_end(**particles_it);
                         ++neighbors_it) { 

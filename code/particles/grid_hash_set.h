@@ -5,7 +5,7 @@
 #include <vector>
 #include "common.h"
 
-namespace particles {
+namespace prtcl {
     class GridHashSet {
         public:
             friend class surr_iterator;
