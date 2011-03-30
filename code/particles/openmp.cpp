@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <math.h>
 #include "common.h"
+#include "grid_hash_set.h"
 
 //
 //  benchmarking program
@@ -27,6 +28,9 @@ int main( int argc, char **argv )
     set_size( n );
     init_particles( n, particles );
 
+    prtcl::GridHashSet* grid = new prtcl::GridHashSet(n, size, cutoff);
+    insert_into_grid(n, particles, grid);
+
     //
     //  simulate a number of time steps
     //
@@ -42,8 +46,17 @@ int main( int argc, char **argv )
         for( int i = 0; i < n; i++ )
         {
             particles[i].ax = particles[i].ay = 0;
-            for (int j = 0; j < n; j++ )
-                apply_force( particles[i], particles[j] );
+
+            // Iterate over all neighbors in the surrounding of current particle.
+            // This should be constant w.r.t. n.
+            prtcl::GridHashSet::surr_iterator neighbors_it;
+            for (neighbors_it = grid->surr_begin(particles[i]);
+                    neighbors_it != grid->surr_end(particles[i]);
+                    ++neighbors_it) { 
+                //printf("\t\tneighbor (%f, %f) in grid [%d][%d]\n", (*neighbors_it)->x, (*neighbors_it)->y, grid->get_row(**neighbors_it), grid->get_col(**neighbors_it));
+
+                apply_force(particles[i], **neighbors_it);
+            }
         }
         
         //
@@ -52,6 +65,13 @@ int main( int argc, char **argv )
         #pragma omp for
         for( int i = 0; i < n; i++ ) 
             move( particles[i] );
+
+        // Update grid hash set.
+        #pragma omp single
+        {
+            grid->clear();
+            insert_into_grid(n, particles, grid);
+        }
         
         //
         //  save if necessary
