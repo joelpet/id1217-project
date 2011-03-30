@@ -1,15 +1,17 @@
-#include <stdlib.h>
-#include <stdio.h>
+#include "common.h"
+#include "grid_hash_set.h"
 #include <assert.h>
 #include <math.h>
 #include <pthread.h>
-#include "common.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 //
 //  global variables
 //
 int n, n_threads;
-particle_t *particles;
+particle_t * particles;
+prtcl::GridHashSet* grid;
 FILE *fsave;
 pthread_barrier_t barrier;
 
@@ -40,8 +42,24 @@ void *thread_routine( void *pthread_id )
         for( int i = first; i < last; i++ )
         {
             particles[i].ax = particles[i].ay = 0;
-            for (int j = 0; j < n; j++ )
-                apply_force( particles[i], particles[j] );
+
+            // 
+            // TODO Create surr_iterator from particles[i] and apply force
+            //
+
+            // Iterate over all neighbors in the surrounding of current particle.
+            // This should be constant w.r.t. n.
+            prtcl::GridHashSet::surr_iterator neighbors_it;
+            for (neighbors_it = grid->surr_begin(particles[i]);
+                    neighbors_it != grid->surr_end(particles[i]);
+                    ++neighbors_it) { 
+                //printf("\t\tneighbor (%f, %f) in grid [%d][%d]\n", (*neighbors_it)->x, (*neighbors_it)->y, grid->get_row(**neighbors_it), grid->get_col(**neighbors_it));
+
+                apply_force(particles[i], **neighbors_it);
+            }
+
+            //for (int j = 0; j < n; j++ )
+                //apply_force( particles[i], particles[j] );
         }
         
         pthread_barrier_wait( &barrier );
@@ -54,6 +72,16 @@ void *thread_routine( void *pthread_id )
         
         pthread_barrier_wait( &barrier );
         
+
+        // Update grid hash set (thread 0).
+        // TODO parallelize? which thread, otherwise?
+        if (thread_id == 0) {
+            grid->clear();
+            insert_into_grid(n, particles, grid);
+        }
+
+        pthread_barrier_wait( &barrier );
+
         //
         //  save if necessary
         //
@@ -94,6 +122,9 @@ int main( int argc, char **argv )
     particles = (particle_t*) malloc( n * sizeof(particle_t) );
     set_size( n );
     init_particles( n, particles );
+
+    grid = new prtcl::GridHashSet(n, size, cutoff);
+    insert_into_grid(n, particles, grid);
 
     pthread_attr_t attr;
     P( pthread_attr_init( &attr ) );

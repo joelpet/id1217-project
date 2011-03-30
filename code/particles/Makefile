@@ -33,9 +33,10 @@ bin_dir=bin
 
 # Source files to compile and link together for the different programs.
 serial_srcs=common.cpp serial.cpp grid_hash_set.cpp
-pthreads_srcs=common.cpp pthreads.cpp
-openmp_srcs=common.cpp openmp.cpp
-mpi_srcs=common.cpp mpi.cpp
+pthreads_srcs=common.cpp pthreads.cpp grid_hash_set.cpp
+openmp_srcs=common.cpp openmp.cpp grid_hash_set.cpp
+mpi_srcs=common.cpp mpi.cpp grid_hash_set.cpp
+
 
 # Object file names derived from sources specified above.
 serial_objs=$(addprefix $(bin_dir)/,$(serial_srcs:.cpp=.o))
