@@ -9,7 +9,7 @@
 //
 //  global variables
 //
-int n, n_threads;
+int n, s, f, n_threads;
 particle_t * particles;
 prtcl::GridHashSet* grid;
 FILE *fsave;
@@ -34,7 +34,7 @@ void *thread_routine( void *pthread_id )
     //
     //  simulate a number of time steps
     //
-    for( int step = 0; step < NSTEPS; step++ )
+    for( int step = 0; step < s; step++ )
     {
         //
         //  compute forces
@@ -78,7 +78,7 @@ void *thread_routine( void *pthread_id )
         //
         //  save if necessary
         //
-        if( thread_id == 0 && fsave && (step%SAVEFREQ) == 0 )
+        if( thread_id == 0 && fsave && (step % f) == 0 )
             save( fsave, n, particles );
     }
     
@@ -98,12 +98,16 @@ int main( int argc, char **argv )
         printf( "Options:\n" );
         printf( "-h to see this help\n" );
         printf( "-n <int> to set the number of particles\n" );
+        printf( "-s <int> to set the number of steps in the simulation\n" );
         printf( "-p <int> to set the number of threads\n" );
         printf( "-o <filename> to specify the output file name\n" );
+        printf( "-f <int> to the the frequency of saving particle coordinates\n" );
         return 0;
     }
     
     n = read_int( argc, argv, "-n", 1000 );
+    s = read_int( argc, argv, "-s", NSTEPS );
+    f = read_int( argc, argv, "-f", SAVEFREQ );
     n_threads = read_int( argc, argv, "-p", 2 );
     char *savename = read_string( argc, argv, "-o", NULL );
     
