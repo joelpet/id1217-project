@@ -43,10 +43,6 @@ void *thread_routine( void *pthread_id )
         {
             particles[i].ax = particles[i].ay = 0;
 
-            // 
-            // TODO Create surr_iterator from particles[i] and apply force
-            //
-
             // Iterate over all neighbors in the surrounding of current particle.
             // This should be constant w.r.t. n.
             prtcl::GridHashSet::surr_iterator neighbors_it;
@@ -57,9 +53,6 @@ void *thread_routine( void *pthread_id )
 
                 apply_force(particles[i], **neighbors_it);
             }
-
-            //for (int j = 0; j < n; j++ )
-                //apply_force( particles[i], particles[j] );
         }
         
         pthread_barrier_wait( &barrier );
