@@ -105,13 +105,8 @@ int main( int argc, char **argv )
             for (neighbors_it = grid->surr_begin(local[i]);
                     neighbors_it != grid->surr_end(local[i]);
                     ++neighbors_it) { 
-                //printf("\t\tneighbor (%f, %f) in grid [%d][%d]\n", (*neighbors_it)->x, (*neighbors_it)->y, grid->get_row(**neighbors_it), grid->get_col(**neighbors_it));
-
                 apply_force(local[i], **neighbors_it);
             }
-
-            //for (int j = 0; j < n; j++ )
-                //apply_force( local[i], particles[j] );
         }
 
         //
