@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "common.h"
+#include "grid_hash_set.h"
 
 //
 //  benchmarking program
@@ -68,6 +69,8 @@ int main( int argc, char **argv )
         init_particles( n, particles );
     MPI_Scatterv( particles, partition_sizes, partition_offsets, PARTICLE, local, nlocal, PARTICLE, 0, MPI_COMM_WORLD );
 
+    prtcl::GridHashSet* grid = new prtcl::GridHashSet(n, size, cutoff);
+
     //
     //  simulate a number of time steps
     //
@@ -78,6 +81,10 @@ int main( int argc, char **argv )
         //  collect all global data locally (not good idea to do)
         //
         MPI_Allgatherv( local, nlocal, PARTICLE, particles, partition_sizes, partition_offsets, PARTICLE, MPI_COMM_WORLD );
+
+        // Prepare grid hash set and insert local data.
+        grid->clear();
+        insert_into_grid(nlocal, local, grid);
 
         //
         //  save current step if necessary (slightly different semantics than in other codes)
@@ -91,8 +98,20 @@ int main( int argc, char **argv )
         for( int i = 0; i < nlocal; i++ )
         {
             local[i].ax = local[i].ay = 0;
-            for (int j = 0; j < n; j++ )
-                apply_force( local[i], particles[j] );
+
+            // Iterate over all neighbors in the surrounding of current particle.
+            // This should be constant w.r.t. n.
+            prtcl::GridHashSet::surr_iterator neighbors_it;
+            for (neighbors_it = grid->surr_begin(local[i]);
+                    neighbors_it != grid->surr_end(local[i]);
+                    ++neighbors_it) { 
+                //printf("\t\tneighbor (%f, %f) in grid [%d][%d]\n", (*neighbors_it)->x, (*neighbors_it)->y, grid->get_row(**neighbors_it), grid->get_col(**neighbors_it));
+
+                apply_force(local[i], **neighbors_it);
+            }
+
+            //for (int j = 0; j < n; j++ )
+                //apply_force( local[i], particles[j] );
         }
 
         //
@@ -109,6 +128,7 @@ int main( int argc, char **argv )
     //
     //  release resources
     //
+    delete grid;
     free( partition_offsets );
     free( partition_sizes );
     free( local );
