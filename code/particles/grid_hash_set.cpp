@@ -22,14 +22,6 @@ namespace prtcl {
         for (it = grids->begin(); it != grids->end(); ++it) {
             *it = new std::deque<particle_t *>();
         }
-
-        std::cout << "Rows: " << num_rows << std::endl;
-        std::cout << "Cols: " << num_cols << std::endl;
-        std::cout << "Grids: " << grids->size() << std::endl;
-        std::cout << "Grid size: " << grid_size << std::endl;
-        std::cout << "Cutoff: " << cutoff << std::endl;
-        std::cout << "Surrounding grids: " << num_surrounding_grids << std::endl;
-
     }
 
     /**
@@ -59,9 +51,6 @@ namespace prtcl {
      * Inserts pointer to the given particle p into this grid hash set.
      */
     void GridHashSet::insert(particle_t & p) {
-        //printf("Inserting particle (%f, %f) into grid [%d][%d].\t", p.x, p.y, get_row(p), get_col(p));
-        //printf("Size of deque before insertion: %zu\n", (*grids)[get_index(p)]->size());
-
         (*grids)[get_index(p)]->push_back(&p);
     }
 
