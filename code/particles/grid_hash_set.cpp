@@ -10,11 +10,6 @@ namespace prtcl {
     /**
      * Constructs a new grid hash set with the given number of particles and
      * the specified size.
-     *
-     * TODO What's worse; num_grids > n OR average_particle_count > 1 ?
-     * Change initialization of num_rows, num_cols accordingly.
-     *
-     * TODO replace deque with list
      */
     GridHashSet::GridHashSet(int n, double size, double cutoff_radius) :
         num_rows(ceil(sqrt(n))), num_cols(ceil(sqrt(n))),

@@ -67,7 +67,6 @@ void *thread_routine( void *pthread_id )
         
 
         // Update grid hash set (thread 0).
-        // TODO parallelize? which thread, otherwise?
         if (thread_id == 0) {
             grid->clear();
             insert_into_grid(n, particles, grid);

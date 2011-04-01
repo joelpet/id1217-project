@@ -58,7 +58,6 @@ clean:
 $(bin_dir):
 	-mkdir $@
 
-# TODO Create a multiple-target recipe for these targets.
 serial: $(bin_dir) $(serial_objs)
 	$(CXX) $(LDFLAGS) $(filter %.o, $^) -o $@
 pthreads: $(bin_dir) $(pthreads_objs)
@@ -68,7 +67,6 @@ openmp: $(bin_dir) $(openmp_objs)
 mpi: $(bin_dir) $(mpi_objs)
 	$(MPCC) $(LDFLAGS) $(filter %.o, $^) -o $@
 
-# TODO Create a multiple-target recipe for these targets.
 $(bin_dir)/mpi.o: mpi.cpp
 	$(MPCC) -c $(CFLAGS) $(all_cxxflags) $< -o $@
 $(bin_dir)/openmp.o: openmp.cpp
