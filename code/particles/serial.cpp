@@ -45,33 +45,19 @@ int main( int argc, char **argv )
         //
         //  compute forces
         //
+        for (int i = 0; i < n; ++i) {
+            particles[i].ax = particles[i].ay = 0;
 
-        // Iterate over all grids in the hash grid set.
-        std::vector<std::deque<particle_t *>*>::iterator grids_it;
-        for (grids_it = grid->grids_begin(); grids_it != grid->grids_end(); ++grids_it) {
-            //printf("for grid at %p:\n", *grids_it);
+            // Iterate over all neighbors in the surrounding of current particle.
+            // This should be constant w.r.t. n.
+            prtcl::GridHashSet::surr_iterator neighbors_it;
+            for (neighbors_it = grid->surr_begin(particles[i]);
+                    neighbors_it != grid->surr_end(particles[i]);
+                    ++neighbors_it) { 
 
-            // Iterate over all particles in the current grid. In general, only 1.
-            std::deque<particle_t *>::iterator particles_it;
-            for (particles_it = (*grids_it)->begin(); particles_it != (*grids_it)->end(); ++particles_it) {
-                //printf("\tparticle x,y=(%f, %f) in grid [%d][%d]\n", (*particles_it)->x, (*particles_it)->y, grid->get_row(**particles_it), grid->get_col(**particles_it));
-
-                (*particles_it)->ax = 0;
-                (*particles_it)->ay = 0;
-
-                // Iterate over all neighbors in the surrounding of current particle.
-                // This should be constant w.r.t. n.
-                prtcl::GridHashSet::surr_iterator neighbors_it;
-                for (neighbors_it = grid->surr_begin(**particles_it);
-                        neighbors_it != grid->surr_end(**particles_it);
-                        ++neighbors_it) { 
-                    //printf("\t\tneighbor (%f, %f) in grid [%d][%d]\n", (*neighbors_it)->x, (*neighbors_it)->y, grid->get_row(**neighbors_it), grid->get_col(**neighbors_it));
-
-                    apply_force(**particles_it, **neighbors_it);
-                }
-
+                apply_force(particles[i], **neighbors_it);
             }
-
+ 
         }
 
         //
