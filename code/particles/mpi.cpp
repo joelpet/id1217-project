@@ -122,7 +122,7 @@ int main( int argc, char **argv )
     simulation_time = read_timer( ) - simulation_time;
 
     if( rank == 0 )
-        printf( "n = %d, n_procs = %d, simulation time = %g s\n", n, n_proc, simulation_time );
+        printf("n = %d, steps = %d, savefreq = %d, n_procs = %d, simulation time = %g seconds\n", n, s, f, n_proc, simulation_time);
 
     //
     //  release resources

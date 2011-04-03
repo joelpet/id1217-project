@@ -144,7 +144,7 @@ int main( int argc, char **argv )
         P( pthread_join( threads[i], NULL ) );
     simulation_time = read_timer( ) - simulation_time;
     
-    printf( "n = %d, n_threads = %d, simulation time = %g seconds\n", n, n_threads, simulation_time );
+    printf("n = %d, steps = %d, savefreq = %d, n_threads = %d, simulation time = %g seconds\n", n, s, f, n_threads, simulation_time);
     
     //
     //  release resources

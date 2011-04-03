@@ -80,7 +80,7 @@ int main( int argc, char **argv )
     }
     simulation_time = read_timer( ) - simulation_time;
     
-    printf( "n = %d, simulation time = %g seconds\n", n, simulation_time );
+    printf("n = %d, steps = %d, savefreq = %d, simulation time = %g seconds\n", n, s, f, simulation_time);
     
     delete grid;
     free( particles );
