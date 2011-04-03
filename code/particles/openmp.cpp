@@ -15,11 +15,15 @@ int main( int argc, char **argv )
         printf( "Options:\n" );
         printf( "-h to see this help\n" );
         printf( "-n <int> to set number of particles\n" );
+        printf( "-s <int> to set the number of steps in the simulation\n" );
         printf( "-o <filename> to specify the output file name\n" );
+        printf( "-f <int> to set the frequency of saving particle coordinates\n" );
         return 0;
     }
 
     int n = read_int( argc, argv, "-n", 1000 );
+    int s = read_int( argc, argv, "-s", NSTEPS );
+    int f = read_int( argc, argv, "-f", SAVEFREQ );
     char *savename = read_string( argc, argv, "-o", NULL );
 
     FILE *fsave = savename ? fopen( savename, "w" ) : NULL;
@@ -37,7 +41,7 @@ int main( int argc, char **argv )
     double simulation_time = read_timer( );
 
     #pragma omp parallel
-    for( int step = 0; step < 1000; step++ )
+    for( int step = 0; step < s; step++ )
     {
         //
         //  compute all forces
@@ -75,7 +79,7 @@ int main( int argc, char **argv )
         //  save if necessary
         //
         #pragma omp master
-        if( fsave && (step%SAVEFREQ) == 0 )
+        if( fsave && (step % f) == 0 )
             save( fsave, n, particles );
     }
     simulation_time = read_timer( ) - simulation_time;
