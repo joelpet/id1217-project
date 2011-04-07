@@ -2,6 +2,7 @@
 
 set log xy
 set key left top
+set grid xtics ytics
 
 plot \
 "../../benchmarks/linear/serial.dat" title "Serial",\
