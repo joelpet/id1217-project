@@ -1,0 +1,43 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[]{color}
+\usepackage[]{graphicx}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{eepic}
+\usepackage{epic}
+\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{parskip}
+\usepackage{ucs}
+
+\author{Joel Pettersson}
+\title{Programming Project: Parallelize Particle Simulation}
+
+\lstset{%
+basicstyle=\small,  % print whole listings small
+}
+
+\begin{document}
+
+\begin{figure}
+    \begin{center}
+        \input{plots/linear}
+        \caption{Plot in log-log scale that indicates $\mathcal{O}(n)$ run time for
+        both the serial and parallel implementations. See
+        Appendix~\ref{sec:appendixBenchmarkScripts} for how the data was collected.} 
+    \end{center}
+\end{figure}
+
+
+
+\appendix
+
+\section{Benchmark scripts}
+\label{sec:appendixBenchmarkScripts}
+
+\lstinputlisting[language=bash]{../code/benchmarking/linear.sh}
+
+
+\end{document}
