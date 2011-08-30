@@ -41,8 +41,8 @@ int main( int argc, char **argv )
     //  allocate generic resources
     //
     FILE *fsave = savename && rank == 0 ? fopen( savename, "w" ) : NULL;
-    particle_t *particles = (particle_t*) malloc( n * sizeof(particle_t) );
 
+    // Define derived data type representing the six doubles in particle_t.
     MPI_Datatype PARTICLE;
     MPI_Type_contiguous( 6, MPI_DOUBLE, &PARTICLE );
     MPI_Type_commit( &PARTICLE );
@@ -63,15 +63,16 @@ int main( int argc, char **argv )
     //  allocate storage for local partition
     //
     int nlocal = partition_sizes[rank];
-    particle_t *local = (particle_t*) malloc( nlocal * sizeof(particle_t) );
 
     //
     //  initialize and distribute the particles (that's fine to leave it unoptimized)
     //
     set_size( n );
-    if( rank == 0 )
+    particle_t *particles = (particle_t*) malloc( n * sizeof(particle_t) );
+    if( rank == 0 ) {
         init_particles( n, particles );
-    MPI_Scatterv( particles, partition_sizes, partition_offsets, PARTICLE, local, nlocal, PARTICLE, 0, MPI_COMM_WORLD );
+    }
+    MPI_Bcast(particles, n, PARTICLE, 0, MPI_COMM_WORLD);
 
     prtcl::GridHashSet* grid = new prtcl::GridHashSet(n, size, cutoff);
 
@@ -81,43 +82,45 @@ int main( int argc, char **argv )
     double simulation_time = read_timer( );
     for( int step = 0; step < s; step++ )
     {
-        // 
-        //  collect all global data locally (not good idea to do)
-        //
-        MPI_Allgatherv( local, nlocal, PARTICLE, particles, partition_sizes, partition_offsets, PARTICLE, MPI_COMM_WORLD );
-
         // Prepare grid hash set and insert local data.
         grid->clear();
-        insert_into_grid(nlocal, local, grid);
+        insert_into_grid(n, particles, grid);
 
         //
         //  save current step if necessary (slightly different semantics than in other codes)
         //
-        if( fsave && (step % f) == 0 )
+        if( rank == 0 && fsave && (step % f) == 0 )
             save( fsave, n, particles );
 
         //
         //  compute all forces
         //
-        for( int i = 0; i < nlocal; i++ )
+        for (int i = partition_offsets[rank]; i < partition_offsets[rank + 1]; i++)
         {
-            local[i].ax = local[i].ay = 0;
+            particles[i].ax = particles[i].ay = 0;
 
             // Iterate over all neighbors in the surrounding of current particle.
             // This should be constant w.r.t. n.
             prtcl::GridHashSet::surr_iterator neighbors_it;
-            for (neighbors_it = grid->surr_begin(local[i]);
-                    neighbors_it != grid->surr_end(local[i]);
+            for (neighbors_it = grid->surr_begin(particles[i]);
+                    neighbors_it != grid->surr_end(particles[i]);
                     ++neighbors_it) { 
-                apply_force(local[i], **neighbors_it);
+                apply_force(particles[i], **neighbors_it);
             }
         }
 
         //
         //  move particles
         //
-        for( int i = 0; i < nlocal; i++ )
-            move( local[i] );
+        for (int i = partition_offsets[rank]; i < partition_offsets[rank + 1]; i++)
+            move( particles[i] );
+
+
+        // Now distribute the work we have done to everyone else, before next iteration.
+        MPI_Barrier(MPI_COMM_WORLD); // TODO nödvändig?
+        particle_t* local = &particles[partition_offsets[rank]];
+        MPI_Allgatherv(local, nlocal, PARTICLE, particles, partition_sizes, partition_offsets, PARTICLE, MPI_COMM_WORLD );
+
     }
     simulation_time = read_timer( ) - simulation_time;
 
@@ -130,7 +133,6 @@ int main( int argc, char **argv )
     delete grid;
     free( partition_offsets );
     free( partition_sizes );
-    free( local );
     free( particles );
     if( fsave )
         fclose( fsave );
