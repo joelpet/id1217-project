@@ -117,7 +117,6 @@ int main( int argc, char **argv )
 
 
         // Now distribute the work we have done to everyone else, before next iteration.
-        MPI_Barrier(MPI_COMM_WORLD); // TODO nödvändig?
         particle_t* local = &particles[partition_offsets[rank]];
         MPI_Allgatherv(local, nlocal, PARTICLE, particles, partition_sizes, partition_offsets, PARTICLE, MPI_COMM_WORLD );
 
