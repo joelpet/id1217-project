@@ -1,0 +1,10 @@
+# Benchmarks for ./pthreads with num_particles = 10000, and n_proc = [1 ... 8]
+# n_proc  time (s)
+  1     71.064600
+  2     40.681600
+  3	    29.326800
+  4	    23.511700
+  5	    19.959900
+  6	    17.487700
+  7	    15.675100
+  8	    13.868400
