@@ -31,13 +31,22 @@ echo "# n_proc  time (s)"
 
 
 for num_proc in `seq $n_proc_first $n_proc_last`; do
-    # Set number of OpenMP threads for openmp.
-    export OMP_NUM_THREADS=$num_proc
+    if [[ $executable == *mpi* ]]; then
+        command="mpiexec -n $num_proc $executable -n $num_particles"
+    elif [[ $executable == *pthread* ]]; then
+        command="$executable -n $num_particles -p $num_proc"
+    elif [[ $executable == *omp* ]]; then
+        export OMP_NUM_THREADS=$num_proc
+        command="$executable -n $num_particles"
+    else
+        echo "Unrecognized executable: $executable"
+        exit
+    fi
+
     printf "%3d\t\t" $num_proc
 
     for j in `seq 1 5`; do
-        # Add -p argument for pthreads.
-        sim_time[$j]=$($executable -n $num_particles -p $num_proc | grep -o "simulation time = [0-9.]* seconds" | awk '{print $4}')
+        sim_time[$j]=$($command | grep -o "simulation time = [0-9.]* seconds" | awk '{print $4}')
     done
 
     median=$(echo ${sim_time[1]} ${sim_time[2]} ${sim_time[3]} ${sim_time[4]} ${sim_time[5]} | tr " " "\n" | sort | head -n 3 | tail -n 1)
