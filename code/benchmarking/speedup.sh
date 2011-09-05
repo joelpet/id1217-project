@@ -31,9 +31,12 @@ echo "# n_proc  time (s)"
 
 
 for num_proc in `seq $n_proc_first $n_proc_last`; do
+    # Set number of OpenMP threads for openmp.
+    export OMP_NUM_THREADS=$num_proc
     printf "%3d\t\t" $num_proc
 
     for j in `seq 1 5`; do
+        # Add -p argument for pthreads.
         sim_time[$j]=$($executable -n $num_particles -p $num_proc | grep -o "simulation time = [0-9.]* seconds" | awk '{print $4}')
     done
 
