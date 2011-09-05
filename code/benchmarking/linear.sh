@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Runs the serial, pthreads, openmp and mpi implementations and output their
-# running times for increasing number of particles.
+# Runs the given particle simulation implementation and output
+# its running times for increasing number of particles.
 #
 
 function print_usage {
@@ -9,7 +9,7 @@ function print_usage {
     exit 1
 }
 
-if [ $# -gt 1 ]; then
+if [ $# -gt 0 ]; then
     executable="$1"
     if [ $# -eq 1 ]; then
         n_first_exp=0
