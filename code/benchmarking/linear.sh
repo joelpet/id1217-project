@@ -34,10 +34,12 @@ for i in `seq $n_first_exp $n_last_exp`; do
     printf "%5d\t" $n
 
     for j in `seq 1 5`; do
-        sim_time[$j]=$($executable -n $n | grep -o "simulation time = [0-9.]* seconds" | awk '{print $4}')
+        sim_time[$j]=$($executable -n $n | grep -o \
+            "simulation time = [0-9.]* seconds" | awk '{print $4}')
     done
 
-    median=$(echo ${sim_time[1]} ${sim_time[2]} ${sim_time[3]} ${sim_time[4]} ${sim_time[5]} | tr " " "\n" | sort | head -n 3 | tail -n 1)
+    median=$(echo ${sim_time[1]} ${sim_time[2]} ${sim_time[3]} ${sim_time[4]} \
+        ${sim_time[5]} | tr " " "\n" | sort | head -n 3 | tail -n 1)
 
     printf "%f\n" $median
 done
