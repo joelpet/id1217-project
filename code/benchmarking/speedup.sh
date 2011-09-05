@@ -24,14 +24,14 @@ else
     print_usage
 fi
 
-num_particles=500
+num_particles=10000
 
 echo "# Benchmarks for $executable with num_particles = $num_particles, and n_proc = [$n_proc_first ... $n_proc_last]"
 echo "# n_proc  time (s)"
 
 
 for num_proc in `seq $n_proc_first $n_proc_last`; do
-    printf "%3d\t" $num_proc
+    printf "%3d\t\t" $num_proc
 
     for j in `seq 1 5`; do
         sim_time[$j]=$($executable -n $num_particles -p $num_proc | grep -o "simulation time = [0-9.]* seconds" | awk '{print $4}')
