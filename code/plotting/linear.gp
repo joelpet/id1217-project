@@ -4,7 +4,7 @@
 #
 
 # LaTeX
-set terminal eepic color rotate
+set terminal eepic color
 set output "../../report/plots/linear.tex"
 
 # Misc settings
@@ -12,7 +12,7 @@ set log xy
 set key left top
 set grid xtics ytics
 set xlabel "Number of particles (n)"
-set ylabel "Time (s)\\hspace{10 mm}"
+set ylabel "Time in seconds"
 
 
 plot \
