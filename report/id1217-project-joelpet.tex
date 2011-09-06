@@ -110,7 +110,8 @@ processes.
 \section{Result}
 
 The plot in Figure \ref{fig:linear} shows that all implementations run in
-$O(n)$ time.
+$O(n)$ time. The plot in Figure \ref{fig:speedup} indicates the parallel
+speedup, which does not really reach the idealized $p$-times speedup.
 
 \begin{figure}[h]
     \begin{center}
@@ -121,9 +122,6 @@ $O(n)$ time.
         \label{fig:linear}
     \end{center}
 \end{figure}
-
-The plot in Figure \ref{fig:speedup} indicates the parallel speedup, which does
-not really reach the idealized $p$-times speedup.
 
 \begin{figure}[h]
     \begin{center}
@@ -136,15 +134,54 @@ not really reach the idealized $p$-times speedup.
 \end{figure}
 
 
-% var spenderas mest tid? utgå från lite slarvig profilering
-% hur skalar den tiden med antalet workers?
+According to some profiling of the Pthreads implementation, most of the time is
+spent in the Grid hash set, especially at code that handles the iteration of
+surrounding particles (interaction candidates) and code that calculates which
+cell a particle should go into, or already resides in.
 
 
 \section{Discussion}
 
-% hur designvalen (gridhashset, allgatherv, \dots) påverkade presetnadn
+Since all implementations are running in linear time, my Grid hash set seems to
+do its job, because otherwise the time taken would have increased quadraticly.
+However, as the profiling showed, there are probably some possibilities to
+reduce the linear coefficient by the means of simple code optimizations.
+Anyway, the ADT as a whole is fine.
 
-% hur är det att använda pthreads, kontra OpenMP, kontra MPI?
+Unfortunately, the parallelized code does not reach the idealized $p$-times
+speedup (for $p$ workers). This indicates that I have not successfully
+exploited all parallelism, and possibly added some
+synchronization/communication overhead.
+
+In the shared memory implementations, insertion into the Grid hash set is done
+serially. This might have been possible to do in parallel. And since a lot of
+time was spent on index calculation for the insertion, this could have boosted
+the speedup. However, that would have required some extra synchronization,
+since \texttt{std::vector} is not thread safe, and that is what I use as part
+of the backend in the Grid hash set. 
+
+The distributed memory implementation that I made is pretty naive and wasteful
+with respect to communication cost, since every single particle is transferred
+to each process. A more economical approach would have been to only distribute
+a subset of the particles to each process. However, that would have required
+some calculation of which particles to transfer.
+
+Comparing Pthreads to OpenMP, the first-mentioned gives a more fine-grained
+control, but also requires more care to be taken. OpenMP is very nice to work
+with in cases where there are suitable \texttt{omp} constructs, but otherwise
+not very useful. In this project, it was perfect. 
+
+It took me some time to get the hang of MPI, but thereafter it was pretty
+straight-forward. I did not have to use very many different constructs, which
+makes it hard for me to tell whether or not it is limited in some way. However,
+I do not get that impression, but rather the other way around---there seems to
+be suitable constructs for most of the parallelization situations.
+
+From this project I have learned how to look at a parallelization problem with
+different perspectives in order to decide what approach is most appropriate for
+solving it.
+
+
 
 \appendix
 
