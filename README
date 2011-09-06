@@ -20,3 +20,12 @@ Project structure
     - the provided utility for visualization of the generated simulations
 - report/
   - report files
+
+
+Building and running
+--------------------
+
+To build all implementations, simply enter the *particles* directory and run
+`make`. For all implementations except MPI, simply run the generated binaries,
+e.g. `./pthread`. The MPI implementation has to be run using `mpiexec` or any
+of its equivalents.
