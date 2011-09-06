@@ -2,3 +2,21 @@ Programming Project: Parallelize Particle Simulation
 ====================================================
 
 Author: Joel Pettersson <joelpet [at] kth [dot] se>
+
+
+Project structure
+-----------------
+
+- benchmarks/
+  - contains benchmarking data for the linear and speedup plots
+- code/
+  - benchmarking/
+    - scripts for benchmarking the applications
+  - particles/
+    - the actual implementations of the particle simulator, incl. GridHashSet
+  - plotting/
+    - GNU Plot scripts that generates the plots for the benchmarks
+  - visualize/
+    - the provided utility for visualization of the generated simulations
+- report/
+  - report files
