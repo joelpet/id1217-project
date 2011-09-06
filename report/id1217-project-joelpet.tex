@@ -11,6 +11,7 @@
 \usepackage{listings}
 \usepackage{parskip}
 \usepackage{ucs}
+\usepackage{verbatim}
 
 \title{
     {\normalsize\sc ID1217 Concurrent Programming} \\ 
@@ -23,7 +24,6 @@
     \bf 880519-0637 \\
 }
 
-
 \lstset{%
 basicstyle=\small,  % print whole listings small
 }
@@ -32,23 +32,146 @@ basicstyle=\small,  % print whole listings small
 
 \maketitle
 
-\begin{figure}
+\section{Introduction}
+
+My main objectives for this project was to better understand development of
+parallel applications in both shared and distributed memory models and practise
+improving parallel performance of an existing application.
+
+The task was to parallelize a simplified particle simulator, where each
+particle is only affected by other particles within a certain range, and where
+the particle density is sufficiently low so that only $O(n)$ interactions are
+expected, given $n$ particles.
+
+\section{Method}
+
+I started by thinking of a way to make the serial implementation run in $O(n)$
+instead of $O(n^2)$ as was the case with the given code. The reason was that
+each particle was checked for interaction with all other, despite the fact that
+only particles in a certain range would affect it. 
+
+I needed a way to quickly find only the particles that were candidates for
+interacting with a specific other particle. What I came up with was an ADT that
+I chose to call a \emph{Grid hash set}.
+
+\subsection{Grid hash set}
+
+The Grid hash set is made to hold references to all the particles. It works by
+creating a grid of cells and each particle is put into one of these cells upon
+insertion into the Grid hash set. When interaction candidates\footnote{
+Particles that are possibly within another particle's range of interaction
+force.} are asked for, only the surrounding cells whose areas are overlapped by
+the interaction range of the given particle are searched. This is done in
+constant amortized time for each particle, since the calculation of the grid
+index (which cell to put the particle in) is constant, and
+\texttt{vector::push\_back} is assumed to be constant in the long run. The
+particles may be assumed to be spread evenly (on average) all over the grid,
+and so there is only a constant amount of interaction candidates. Thus,
+iterating over all particles, and for each one looking up a constant amount of
+other particles, for which constant work is done, results in a linear time
+complexity.
+
+
+\subsubsection{Utilizing the Grid hash set}
+
+When I had implemented and tested the Grid hash set it was only a matter of
+utilizing it in the already existing applications. Generally, I simply started
+the execution with inserting all particles into the grid and then distributed
+the particles among the available workers.
+
+
+\subsection{Synchronization shared memory implementations}
+
+The synchronization in the Pthreads implementation simply consists of a single
+barrier (used multiple times). This causes the simulation to be divided into
+three disjoint phases; first the forces are computed for the particles
+belonging to each thread, then the particles are moved, and finally the main
+thread saves the new positions.
+
+In the OpenMP implementation I use the \texttt{parallel} for the main thread to
+create a team of threads to carry out the iteration indicated by \texttt{for}
+in parallel. This essentially breaks down into the same behaviour as described
+in previous paragraph, since there is an implied barrier at the end of the
+\texttt{for} construct.
+
+
+\subsection{Communication in distributed implementation}
+
+For the sake of implementation simplicity I chose a type of communication that
+made the parallelization construct resemble shared memory. To start with, the
+main process initiates all particles and the broadcasts them to the rest of the
+world. Then each process puts the particles into its own Grid hash set,
+calculates the forces for its own particles (possibly based on all other
+particles), moves them, and then when everyone is done, they send out their own
+particles and gathers the new position of all other particles from the other
+processes.
+
+
+\section{Result}
+
+The plot in Figure \ref{fig:linear} shows that all implementations run in
+$O(n)$ time.
+
+\begin{figure}[h]
     \begin{center}
         \input{plots/linear}
         \caption{Plot in log-log scale that indicates $\mathcal{O}(n)$ run time for
         both the serial and parallel implementations. See
         Appendix~\ref{sec:appendixBenchmarkScripts} for how the data was collected.} 
+        \label{fig:linear}
+    \end{center}
+\end{figure}
+
+The plot in Figure \ref{fig:speedup} indicates the parallel speedup, which does
+not really reach the idealized $p$-times speedup.
+
+\begin{figure}[h]
+    \begin{center}
+        \input{plots/speedup}
+        \caption{Plot that shows the speedup from parallelization. See
+        Appendix~\ref{sec:appendixBenchmarkScripts} for how the data was
+        collected.} 
+        \label{fig:speedup}
     \end{center}
 \end{figure}
 
 
+% var spenderas mest tid? utgå från lite slarvig profilering
+% hur skalar den tiden med antalet workers?
+
+
+\section{Discussion}
+
+% hur designvalen (gridhashset, allgatherv, \dots) påverkade presetnadn
+
+% hur är det att använda pthreads, kontra OpenMP, kontra MPI?
 
 \appendix
 
 \section{Benchmark scripts}
 \label{sec:appendixBenchmarkScripts}
 
+\subsection{Linearity}
 \lstinputlisting[language=bash]{../code/benchmarking/linear.sh}
+
+\subsection{Parallelization}
+\lstinputlisting[language=bash]{../code/benchmarking/speedup.sh}
+
+
+\section{Benchmarks data} 
+
+\subsection{Linearity}
+
+\verbatiminput{../benchmarks/linear/serial.dat}
+\verbatiminput{../benchmarks/linear/pthreads.dat}
+\verbatiminput{../benchmarks/linear/openmp.dat}
+\verbatiminput{../benchmarks/linear/mpi.dat}
+
+\subsection{Parallelization}
+
+\verbatiminput{../benchmarks/speedup/pthreads.dat}
+\verbatiminput{../benchmarks/speedup/openmp.dat}
+\verbatiminput{../benchmarks/speedup/mpi.dat}
 
 
 \end{document}
