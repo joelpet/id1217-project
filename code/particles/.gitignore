@@ -3,3 +3,8 @@ serial
 pthreads
 openmp
 mpi
+fastflow
+
+.project
+.cproject
+output.txt
