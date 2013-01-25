@@ -42,43 +42,41 @@ int main(int argc, char **argv) {
 
 	double simulation_time = read_timer();
 
+	ff::ff_farm<> force_farm;
+	prtcl::ParticlesEmitter* force_emitter = new prtcl::ParticlesEmitter(
+			particles, n, grid);
+	std::vector<ff::ff_node*> workers;
+
+	for (size_t i = 0; i < num_cores; ++i) {
+		workers.push_back(new prtcl::ComputeWorker());
+	}
+
+	force_farm.add_emitter(force_emitter);
+	force_farm.add_workers(workers);
+
+	ff::ff_farm<> move_farm;
+	prtcl::ParticlesEmitter* move_emitter = new prtcl::ParticlesEmitter(
+			particles, n, grid);
+	std::vector<ff::ff_node*> move_workers;
+
+	for (size_t i = 0; i < num_cores; ++i) {
+		move_workers.push_back(new prtcl::MoveWorker());
+	}
+
+	move_farm.add_emitter(move_emitter);
+	move_farm.add_workers(move_workers);
+
 	for (int step = 0; step < s; ++step) {
 		grid->clear();
 		insert_into_grid(n, particles, grid);
 
-		// TODO init everything outside for and just run_and_wait_end() inside
-		ff::ff_farm<> force_farm;
-
-		ff::ff_node* emitter = new prtcl::ParticlesEmitter(particles, n, *grid);
-		std::vector<ff::ff_node*> workers;
-
-		for (size_t i = 0; i < num_cores; ++i) {
-			workers.push_back(new prtcl::ComputeWorker());
-		}
-
-		force_farm.add_emitter(emitter);
-		force_farm.add_workers(workers);
-
 		if (force_farm.run_and_wait_end() < 0) {
-			ff::error("Something went wrong when computing forces.");
+			ff::error("Something went wrong when computing forces.\n");
 			return -1;
 		}
 
-		ff::ff_farm<> move_farm;
-
-		ff::ff_node* move_emitter = new prtcl::ParticlesEmitter(particles, n,
-				*grid);
-		std::vector<ff::ff_node*> move_workers;
-
-		for (size_t i = 0; i < num_cores; ++i) {
-			move_workers.push_back(new prtcl::MoveWorker());
-		}
-
-		move_farm.add_emitter(move_emitter);
-		move_farm.add_workers(move_workers);
-
 		if (move_farm.run_and_wait_end() < 0) {
-			ff::error("Something went wrong when moving particles.");
+			ff::error("Something went wrong when moving particles.\n");
 			return -1;
 		}
 
@@ -93,6 +91,8 @@ int main(int argc, char **argv) {
 	printf("n = %d, steps = %d, savefreq = %d, simulation time = %g seconds\n",
 			n, s, f, simulation_time);
 
+	delete force_emitter;
+	delete move_emitter;
 	delete grid;
 	free(particles);
 	if (fsave)

@@ -107,16 +107,20 @@ int GridHashSet::get_index(particle_t & p) {
  * Returns the row index where p should reside.
  */
 int GridHashSet::get_row(particle_t & p) {
-	assert(floor(p.y / grid_size) < num_rows);
-	return floor(p.y / grid_size);
+	int row = static_cast<int>(p.y / grid_size);
+	assert(row == floor(p.y / grid_size));
+	assert(row < num_rows);
+	return row;
 }
 
 /**
  * Returns the column index where p should reside.
  */
 int GridHashSet::get_col(particle_t & p) {
-	assert(floor(p.x / grid_size) < num_cols);
-	return floor(p.x / grid_size);
+	int col = static_cast<int>(p.x / grid_size);
+	assert(col == floor(p.x / grid_size));
+	assert(col < num_cols);
+	return col;
 }
 
 /*

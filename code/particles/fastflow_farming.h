@@ -26,12 +26,13 @@ struct ParticlesTask {
 
 class ParticlesEmitter: public ff::ff_node {
 	size_t m_num_particles;
-	GridHashSet& m_grid;
+	GridHashSet* m_grid;
 	ParticlesTask* m_template_task;
 	size_t m_block_size;
 
 public:
-	ParticlesEmitter(particle_t*, size_t, GridHashSet&);
+	ParticlesEmitter(particle_t*, size_t, GridHashSet*);
+	virtual ~ParticlesEmitter();
 	virtual void* svc(void*);
 };
 

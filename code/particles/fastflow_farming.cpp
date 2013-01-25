@@ -11,15 +11,19 @@ namespace prtcl {
 //
 
 ParticlesEmitter::ParticlesEmitter(particle_t* particles, size_t num_particles,
-		GridHashSet& grid) :
+		GridHashSet* grid) :
 		m_num_particles(num_particles), m_grid(grid), m_template_task(
 				new ParticlesTask()) {
 	m_template_task->begin = 0;
 	m_template_task->end = 0;
 	m_template_task->particles = particles;
-	m_template_task->grid = &m_grid;
+	m_template_task->grid = m_grid;
 
-	m_block_size = (num_particles + 1) / ff_numCores();
+	m_block_size = cache_line_size();
+}
+
+ParticlesEmitter::~ParticlesEmitter() {
+	delete m_template_task;
 }
 
 void* ParticlesEmitter::svc(void*) {
@@ -31,6 +35,8 @@ void* ParticlesEmitter::svc(void*) {
 		end += std::min(m_block_size, (m_num_particles - end));
 		t->end = end;
 
+		// Push the task to the emitter's output buffer, which is built upon a
+		// SWSR lock-free (wait-free) (un)bounded FIFO queue.
 		ff_send_out(t);
 	}
 
@@ -42,24 +48,25 @@ void* ParticlesEmitter::svc(void*) {
 //
 
 void* ComputeWorker::svc(void* task) {
-	ParticlesTask* t = (ParticlesTask*) task;
+	ParticlesTask* t = static_cast<ParticlesTask*>(task);
 
 	for (size_t i = t->begin; i < t->end; ++i) {
-		particle_t& particle = t->particles[i];
-		particle.ax = particle.ay = 0;
+		t->particles[i].ax = t->particles[i].ay = 0;
 
 		// Iterate over all neighbors in the surrounding of current particle.
 		// This should be constant w.r.t. n.
 		prtcl::GridHashSet::surr_iterator neighbors_it;
 
-		for (neighbors_it = t->grid->surr_begin(particle);
-				neighbors_it != t->grid->surr_end(particle); ++neighbors_it) {
-			particle_t& other = **neighbors_it;
-			apply_force(particle, other);
+		for (neighbors_it = t->grid->surr_begin(t->particles[i]);
+				neighbors_it != t->grid->surr_end(t->particles[i]);
+				++neighbors_it) {
+			apply_force(t->particles[i], **neighbors_it);
 		}
 	}
 
-	return EOS ;
+	delete t;
+
+	return GO_ON ;
 }
 
 //
@@ -67,13 +74,18 @@ void* ComputeWorker::svc(void* task) {
 //
 
 void* MoveWorker::svc(void* task) {
-	ParticlesTask* t = (ParticlesTask*) task;
+	ParticlesTask* t = static_cast<ParticlesTask*>(task);
 
 	for (size_t i = t->begin; i < t->end; ++i) {
 		move(t->particles[i]);
 	}
 
-	return EOS ;
+	delete t;
+
+	// I finished processing the current task, I give you no result to be
+	// delivered onto the output stream, but please keep me alive ready to
+	// receive another input task. (GO_ON)
+	return GO_ON ;
 }
 
 }
