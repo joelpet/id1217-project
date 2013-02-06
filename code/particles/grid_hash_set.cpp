@@ -108,7 +108,6 @@ int GridHashSet::get_index(particle_t & p) {
  */
 int GridHashSet::get_row(particle_t & p) {
 	int row = static_cast<int>(p.y / grid_size);
-	assert(row == floor(p.y / grid_size));
 	assert(row < num_rows);
 	return row;
 }
@@ -118,7 +117,6 @@ int GridHashSet::get_row(particle_t & p) {
  */
 int GridHashSet::get_col(particle_t & p) {
 	int col = static_cast<int>(p.x / grid_size);
-	assert(col == floor(p.x / grid_size));
 	assert(col < num_cols);
 	return col;
 }

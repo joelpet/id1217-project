@@ -62,10 +62,11 @@ void* SimulatorWorker::svc(void* task) {
 		// Iterate over all neighbors in the surrounding of current particle.
 		// This should be constant w.r.t. n.
 		prtcl::GridHashSet::surr_iterator neighbors_it;
+		prtcl::GridHashSet::surr_iterator neighbors_it_end = t->grid->surr_end(
+				t->particles[i]);
 
 		for (neighbors_it = t->grid->surr_begin(t->particles[i]);
-				neighbors_it != t->grid->surr_end(t->particles[i]);
-				++neighbors_it) {
+				neighbors_it != neighbors_it_end; ++neighbors_it) {
 			apply_force(t->particles[i], **neighbors_it);
 		}
 
