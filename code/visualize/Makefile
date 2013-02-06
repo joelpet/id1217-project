@@ -12,7 +12,7 @@ else
 endif
 
 visualize: visualize.cpp
-	$(CC) $(INCLUDES) $(FRAMEWORKS) $(LIBS) -o $@ $< 
+	$(CC) $(INCLUDES) $(FRAMEWORKS) $(LIBS) -o $@ $<
 
 clean:
 	rm visualize
