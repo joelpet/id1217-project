@@ -13,13 +13,14 @@ namespace prtcl {
 // Particles emitter
 //
 
-ParticlesEmitter::ParticlesEmitter(particle_t* particles, size_t num_particles,
-		GridHashSet* grid) :
+ParticlesEmitter::ParticlesEmitter(particle_t* particles,
+		particle_t* particles_next, size_t num_particles, GridHashSet* grid) :
 		m_num_particles(num_particles), m_grid(grid), m_template_task(
 				new ParticlesTask()) {
 	m_template_task->begin = 0;
 	m_template_task->end = 0;
 	m_template_task->particles = particles;
+	m_template_task->particles_next = particles_next;
 	m_template_task->grid = m_grid;
 
 	m_block_size = cache_line_size();
@@ -43,14 +44,16 @@ void* ParticlesEmitter::svc(void*) {
 		ff_send_out(t);
 	}
 
+	std::swap(m_template_task->particles, m_template_task->particles_next);
+
 	return EOS ;
 }
 
 //
-// Force compute worker
+// Simulator worker
 //
 
-void* ComputeWorker::svc(void* task) {
+void* SimulatorWorker::svc(void* task) {
 	ParticlesTask* t = static_cast<ParticlesTask*>(task);
 
 	for (size_t i = t->begin; i < t->end; ++i) {
@@ -65,28 +68,11 @@ void* ComputeWorker::svc(void* task) {
 				++neighbors_it) {
 			apply_force(t->particles[i], **neighbors_it);
 		}
+
+		t->particles_next[i] = t->particles[i];
+		move(t->particles_next[i]);
 	}
 
-	delete t;
-
-	return GO_ON ;
-}
-
-//
-// Move particles worker
-//
-
-void* MoveWorker::svc(void* task) {
-	ParticlesTask* t = static_cast<ParticlesTask*>(task);
-
-	for (size_t i = t->begin; i < t->end; ++i) {
-		move(t->particles[i]);
-	}
-
-	// I finished processing the current task, I give you no result to be
-	// delivered onto the output stream, but please keep me alive ready to
-	// receive another input task. (GO_ON)
-	// Returning a non-NULL value should be equal to the above description.
 	return t;
 }
 
@@ -119,9 +105,11 @@ void* MoveCollector::svc(void* task) {
 		m_outfile.seekp(begin_offset);
 
 		for (size_t i = t->begin; i < t->end; ++i) {
-			m_outfile << std::setw(COORDINATE_PRECISION) << t->particles[i].x;
+			m_outfile << std::setw(COORDINATE_PRECISION)
+					<< t->particles_next[i].x;
 			m_outfile << " ";
-			m_outfile << std::setw(COORDINATE_PRECISION) << t->particles[i].y;
+			m_outfile << std::setw(COORDINATE_PRECISION)
+					<< t->particles_next[i].y;
 			m_outfile << std::endl;
 		}
 	}

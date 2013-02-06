@@ -20,6 +20,11 @@ struct ParticlesTask {
 	particle_t* particles;
 
 	/**
+	 * Pointer to the particles that will be used in next step.
+	 */
+	particle_t* particles_next;
+
+	/**
 	 * A grid hash set representation of the particles.
 	 */
 	GridHashSet* grid;
@@ -32,17 +37,12 @@ class ParticlesEmitter: public ff::ff_node {
 	size_t m_block_size;
 
 public:
-	ParticlesEmitter(particle_t*, size_t, GridHashSet*);
+	ParticlesEmitter(particle_t*, particle_t*, size_t, GridHashSet*);
 	virtual ~ParticlesEmitter();
 	virtual void* svc(void*);
 };
 
-class ComputeWorker: public ff::ff_node {
-public:
-	virtual void* svc(void*);
-};
-
-class MoveWorker: public ff::ff_node {
+class SimulatorWorker: public ff::ff_node {
 public:
 	virtual void* svc(void*);
 };

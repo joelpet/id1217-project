@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <algorithm>
 #include <ff/farm.hpp>
 #include <ff/node.hpp>
 #include <ff/pipeline.hpp>
@@ -32,7 +33,9 @@ int main(int argc, char **argv) {
 
 	char *savename = read_string(argc, argv, "-o", NULL);
 
-	particle_t *particles = (particle_t*) malloc(n * sizeof(particle_t));
+	particle_t* particles = new particle_t[n];
+	particle_t* particles_next = new particle_t[n];
+
 	set_size(n);
 	init_particles(n, particles);
 	size_t num_cores = ff_numCores();
@@ -42,55 +45,48 @@ int main(int argc, char **argv) {
 
 	double simulation_time = read_timer();
 
-	ff::ff_farm<> force_farm;
-	prtcl::ParticlesEmitter force_emitter(particles, n, &grid);
+	ff::ff_farm<> simulator_farm;
+	prtcl::ParticlesEmitter emitter(particles, particles_next, n, &grid);
 	std::vector<ff::ff_node*> workers;
 
 	for (size_t i = 0; i < num_cores; ++i) {
-		workers.push_back(new prtcl::ComputeWorker());
+		workers.push_back(new prtcl::SimulatorWorker());
 	}
 
-	force_farm.add_emitter(&force_emitter);
-	force_farm.add_workers(workers);
+	simulator_farm.add_emitter(&emitter);
+	simulator_farm.add_workers(workers);
 
-	ff::ff_farm<> move_farm;
-	prtcl::ParticlesEmitter move_emitter(particles, n, &grid);
-	prtcl::MoveCollector move_collector(savename, n, &step, f);
-
-	std::vector<ff::ff_node*> move_workers;
-
-	for (size_t i = 0; i < num_cores; ++i) {
-		move_workers.push_back(new prtcl::MoveWorker());
-	}
-
-	move_farm.add_emitter(&move_emitter);
-	move_farm.add_workers(move_workers);
+	prtcl::MoveCollector* move_collector = NULL;
 
 	if (savename) {
-		move_farm.add_collector(&move_collector);
+		move_collector = new prtcl::MoveCollector(savename, n, &step, f);
+		simulator_farm.add_collector(move_collector);
 	}
 
 	for (step = 0; step < s; ++step) {
 		grid.clear();
 		insert_into_grid(n, particles, &grid);
 
-		if (force_farm.run_and_wait_end() < 0) {
+		if (simulator_farm.run_and_wait_end() < 0) {
 			ff::error("Something went wrong when computing forces.\n");
 			return -1;
 		}
 
-		if (move_farm.run_and_wait_end() < 0) {
-			ff::error("Something went wrong when moving particles.\n");
-			return -1;
-		}
+		std::swap(particles, particles_next);
 	}
 
 	simulation_time = read_timer() - simulation_time;
 
-	printf("n = %d, steps = %d, savefreq = %d, simulation time = %g seconds\n",
-			n, s, f, simulation_time);
+	printf(
+			"n = %d, steps = %d, savefreq = %d, simulation time = %g seconds, num_cores = %d\n",
+			n, s, f, simulation_time, ff_numCores());
 
-	free(particles);
+	if (move_collector) {
+		delete move_collector;
+	}
+
+	delete[] particles;
+	delete[] particles_next;
 
 	return 0;
 }
