@@ -6,13 +6,13 @@ ifeq ($(OSTYPE), Darwin)
   LIBS = -lSDLmain -lSDL
   FRAMEWORKS = -framework SDL -framework OpenGL -framework Cocoa
 else
-  INCLUDES = -I/usr/include/SDL
-  LIBS = -lSDLmain -lSDL -lGL -lGLU
+  INCLUDES = $(shell sdl-config --cflags)
+  LIBS = $(shell sdl-config --libs) -lGL -lGLU
   FRAMEWORKS =
 endif
 
 visualize: visualize.cpp
-	$(CC) $(INCLUDES) $(FRAMEWORKS) $(LIBS) -o $@ $<
+	$(CC) $< $(INCLUDES) $(FRAMEWORKS) $(LIBS) -o $@
 
 clean:
 	rm visualize
