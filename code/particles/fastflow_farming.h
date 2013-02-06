@@ -2,6 +2,7 @@
 #define FASTFLOW_FARMING_H_
 
 #include <ff/node.hpp>
+#include <fstream>
 
 #include "common.h"
 
@@ -43,6 +44,24 @@ public:
 
 class MoveWorker: public ff::ff_node {
 public:
+	virtual void* svc(void*);
+};
+
+class MoveCollector: public ff::ff_node {
+	static const int COORDINATE_PRECISION = 8;
+
+	std::ofstream m_outfile;
+	long m_header_offset;
+	int m_line_length;
+
+	int m_n;
+	int* m_step;
+	int m_frequency;
+
+public:
+	MoveCollector(char* savename, int n, int* step, int f);
+	virtual ~MoveCollector();
+
 	virtual void* svc(void*);
 };
 

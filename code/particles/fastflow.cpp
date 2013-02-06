@@ -31,44 +31,48 @@ int main(int argc, char **argv) {
 	int f = read_int(argc, argv, "-f", SAVEFREQ);
 
 	char *savename = read_string(argc, argv, "-o", NULL);
-	FILE *fsave = savename ? fopen(savename, "w") : NULL;
 
 	particle_t *particles = (particle_t*) malloc(n * sizeof(particle_t));
 	set_size(n);
 	init_particles(n, particles);
 	size_t num_cores = ff_numCores();
+	int step;
 
-	prtcl::GridHashSet* grid = new prtcl::GridHashSet(n, size, cutoff);
+	prtcl::GridHashSet grid(n, size, cutoff);
 
 	double simulation_time = read_timer();
 
 	ff::ff_farm<> force_farm;
-	prtcl::ParticlesEmitter* force_emitter = new prtcl::ParticlesEmitter(
-			particles, n, grid);
+	prtcl::ParticlesEmitter force_emitter(particles, n, &grid);
 	std::vector<ff::ff_node*> workers;
 
 	for (size_t i = 0; i < num_cores; ++i) {
 		workers.push_back(new prtcl::ComputeWorker());
 	}
 
-	force_farm.add_emitter(force_emitter);
+	force_farm.add_emitter(&force_emitter);
 	force_farm.add_workers(workers);
 
 	ff::ff_farm<> move_farm;
-	prtcl::ParticlesEmitter* move_emitter = new prtcl::ParticlesEmitter(
-			particles, n, grid);
+	prtcl::ParticlesEmitter move_emitter(particles, n, &grid);
+	prtcl::MoveCollector move_collector(savename, n, &step, f);
+
 	std::vector<ff::ff_node*> move_workers;
 
 	for (size_t i = 0; i < num_cores; ++i) {
 		move_workers.push_back(new prtcl::MoveWorker());
 	}
 
-	move_farm.add_emitter(move_emitter);
+	move_farm.add_emitter(&move_emitter);
 	move_farm.add_workers(move_workers);
 
-	for (int step = 0; step < s; ++step) {
-		grid->clear();
-		insert_into_grid(n, particles, grid);
+	if (savename) {
+		move_farm.add_collector(&move_collector);
+	}
+
+	for (step = 0; step < s; ++step) {
+		grid.clear();
+		insert_into_grid(n, particles, &grid);
 
 		if (force_farm.run_and_wait_end() < 0) {
 			ff::error("Something went wrong when computing forces.\n");
@@ -79,11 +83,6 @@ int main(int argc, char **argv) {
 			ff::error("Something went wrong when moving particles.\n");
 			return -1;
 		}
-
-		//  save if necessary
-		if (fsave && (step % f) == 0) {
-			save(fsave, n, particles);
-		}
 	}
 
 	simulation_time = read_timer() - simulation_time;
@@ -91,12 +90,7 @@ int main(int argc, char **argv) {
 	printf("n = %d, steps = %d, savefreq = %d, simulation time = %g seconds\n",
 			n, s, f, simulation_time);
 
-	delete force_emitter;
-	delete move_emitter;
-	delete grid;
 	free(particles);
-	if (fsave)
-		fclose(fsave);
 
 	return 0;
 }

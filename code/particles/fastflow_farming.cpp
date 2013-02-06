@@ -1,5 +1,8 @@
 #include <algorithm>
+#include <math.h>
+#include <iomanip>
 #include <ff/farm.hpp>
+#include <fstream>
 
 #include "fastflow_farming.h"
 #include "grid_hash_set.h"
@@ -80,11 +83,50 @@ void* MoveWorker::svc(void* task) {
 		move(t->particles[i]);
 	}
 
-	delete t;
-
 	// I finished processing the current task, I give you no result to be
 	// delivered onto the output stream, but please keep me alive ready to
 	// receive another input task. (GO_ON)
+	// Returning a non-NULL value should be equal to the above description.
+	return t;
+}
+
+//
+// Move particle collector
+//
+
+MoveCollector::MoveCollector(char* savename, int n, int* step, int f) :
+		m_outfile(savename), m_line_length(
+				2 * (MoveCollector::COORDINATE_PRECISION + 6) + 2), m_n(n), m_step(
+				step), m_frequency(f) {
+	m_outfile << n << " " << size << std::endl;
+	m_header_offset = m_outfile.tellp();
+
+	m_outfile << std::setiosflags(std::ios::scientific);
+	m_outfile << std::setprecision(COORDINATE_PRECISION);
+}
+
+MoveCollector::~MoveCollector() {
+	m_outfile.close();
+}
+
+void* MoveCollector::svc(void* task) {
+	ParticlesTask* t = static_cast<ParticlesTask*>(task);
+
+	if (*m_step % m_frequency == 0) {
+		int begin_offset = m_header_offset
+				+ (*m_step / m_frequency) * m_n * m_line_length
+				+ t->begin * m_line_length;
+		m_outfile.seekp(begin_offset);
+
+		for (size_t i = t->begin; i < t->end; ++i) {
+			m_outfile << std::setw(COORDINATE_PRECISION) << t->particles[i].x;
+			m_outfile << " ";
+			m_outfile << std::setw(COORDINATE_PRECISION) << t->particles[i].y;
+			m_outfile << std::endl;
+		}
+	}
+
+	delete t;
 	return GO_ON ;
 }
 
