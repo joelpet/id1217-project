@@ -38,6 +38,8 @@ for num_proc in `seq $n_proc_first $n_proc_last`; do
     elif [[ $executable == *omp* ]]; then
         export OMP_NUM_THREADS=$num_proc
         command="$executable -n $num_particles"
+    elif [[ $executable == *fastflow* ]]; then
+        command="$executable -n $num_particles -p $num_proc"
     else
         echo "Unrecognized executable: $executable"
         exit
