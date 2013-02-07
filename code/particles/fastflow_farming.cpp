@@ -10,7 +10,7 @@
 namespace prtcl {
 
 //
-// Particles emitter
+// Emitter
 //
 
 ParticlesEmitter::ParticlesEmitter(particle_t* particles,
@@ -50,7 +50,7 @@ void* ParticlesEmitter::svc(void*) {
 }
 
 //
-// Simulator worker
+// Worker
 //
 
 void* SimulatorWorker::svc(void* task) {
@@ -78,12 +78,12 @@ void* SimulatorWorker::svc(void* task) {
 }
 
 //
-// Move particle collector
+// Collector
 //
 
-MoveCollector::MoveCollector(char* savename, int n, int* step, int f) :
+ParticlesCollector::ParticlesCollector(char* savename, int n, int* step, int f) :
 		m_outfile(savename), m_line_length(
-				2 * (MoveCollector::COORDINATE_PRECISION + 6) + 2), m_n(n), m_step(
+				2 * (ParticlesCollector::COORDINATE_PRECISION + 6) + 2), m_n(n), m_step(
 				step), m_frequency(f) {
 	m_outfile << n << " " << size << std::endl;
 	m_header_offset = m_outfile.tellp();
@@ -92,11 +92,11 @@ MoveCollector::MoveCollector(char* savename, int n, int* step, int f) :
 	m_outfile << std::setprecision(COORDINATE_PRECISION);
 }
 
-MoveCollector::~MoveCollector() {
+ParticlesCollector::~ParticlesCollector() {
 	m_outfile.close();
 }
 
-void* MoveCollector::svc(void* task) {
+void* ParticlesCollector::svc(void* task) {
 	ParticlesTask* t = static_cast<ParticlesTask*>(task);
 
 	if (*m_step % m_frequency == 0) {

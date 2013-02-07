@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
 	ff::ff_farm<> simulator_farm;
 	prtcl::ParticlesEmitter emitter(particles, particles_next, n, &grid);
 	std::vector<ff::ff_node*> workers;
+	prtcl::ParticlesCollector* collector = NULL;
 
 	for (size_t i = 0; i < p; ++i) {
 		workers.push_back(new prtcl::SimulatorWorker());
@@ -57,11 +58,9 @@ int main(int argc, char **argv) {
 	simulator_farm.add_emitter(&emitter);
 	simulator_farm.add_workers(workers);
 
-	prtcl::MoveCollector* move_collector = NULL;
-
 	if (savename) {
-		move_collector = new prtcl::MoveCollector(savename, n, &step, f);
-		simulator_farm.add_collector(move_collector);
+		collector = new prtcl::ParticlesCollector(savename, n, &step, f);
+		simulator_farm.add_collector(collector);
 	}
 
 	for (step = 0; step < s; ++step) {
@@ -82,8 +81,8 @@ int main(int argc, char **argv) {
 			"n = %d, steps = %d, savefreq = %d, simulation time = %g seconds, num_workers = %d\n",
 			n, s, f, simulation_time, simulator_farm.getNWorkers());
 
-	if (move_collector) {
-		delete move_collector;
+	if (collector) {
+		delete collector;
 	}
 
 	delete[] particles;

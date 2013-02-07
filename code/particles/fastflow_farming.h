@@ -47,7 +47,7 @@ public:
 	virtual void* svc(void*);
 };
 
-class MoveCollector: public ff::ff_node {
+class ParticlesCollector: public ff::ff_node {
 	static const int COORDINATE_PRECISION = 8;
 
 	std::ofstream m_outfile;
@@ -59,8 +59,8 @@ class MoveCollector: public ff::ff_node {
 	int m_frequency;
 
 public:
-	MoveCollector(char* savename, int n, int* step, int f);
-	virtual ~MoveCollector();
+	ParticlesCollector(char* savename, int n, int* step, int f);
+	virtual ~ParticlesCollector();
 
 	virtual void* svc(void*);
 };
