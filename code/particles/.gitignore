@@ -8,3 +8,6 @@ fastflow
 .project
 .cproject
 output.txt
+
+perf.data
+perf.data.old
