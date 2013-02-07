@@ -24,12 +24,14 @@ int main(int argc, char **argv) {
 		printf("-o <filename> to specify the output file name\n");
 		printf(
 				"-f <int> to set the frequency of saving particle coordinates (e.g. each ten's step)");
+		printf("-p <int> to set the number of farm workers");
 		return 0;
 	}
 
 	int n = read_int(argc, argv, "-n", 1000);
 	int s = read_int(argc, argv, "-s", NSTEPS);
 	int f = read_int(argc, argv, "-f", SAVEFREQ);
+	size_t p = read_int(argc, argv, "-p", ff_numCores());
 
 	char *savename = read_string(argc, argv, "-o", NULL);
 
@@ -38,7 +40,6 @@ int main(int argc, char **argv) {
 
 	set_size(n);
 	init_particles(n, particles);
-	size_t num_cores = ff_numCores();
 	int step;
 
 	prtcl::GridHashSet grid(n, size, cutoff);
@@ -49,7 +50,7 @@ int main(int argc, char **argv) {
 	prtcl::ParticlesEmitter emitter(particles, particles_next, n, &grid);
 	std::vector<ff::ff_node*> workers;
 
-	for (size_t i = 0; i < num_cores; ++i) {
+	for (size_t i = 0; i < p; ++i) {
 		workers.push_back(new prtcl::SimulatorWorker());
 	}
 
@@ -78,8 +79,8 @@ int main(int argc, char **argv) {
 	simulation_time = read_timer() - simulation_time;
 
 	printf(
-			"n = %d, steps = %d, savefreq = %d, simulation time = %g seconds, num_cores = %d\n",
-			n, s, f, simulation_time, ff_numCores());
+			"n = %d, steps = %d, savefreq = %d, simulation time = %g seconds, num_workers = %d\n",
+			n, s, f, simulation_time, simulator_farm.getNWorkers());
 
 	if (move_collector) {
 		delete move_collector;
