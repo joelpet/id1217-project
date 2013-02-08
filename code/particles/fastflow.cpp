@@ -24,16 +24,16 @@ int main(int argc, char **argv) {
 		printf("-o <filename> to specify the output file name\n");
 		printf(
 				"-f <int> to set the frequency of saving particle coordinates (e.g. each ten's step)");
-		printf("-p <int> to set the number of farm workers");
+		printf("-p <int> to set the number of processors to employ");
 		return 0;
 	}
 
 	int n = read_int(argc, argv, "-n", 1000);
 	int s = read_int(argc, argv, "-s", NSTEPS);
 	int f = read_int(argc, argv, "-f", SAVEFREQ);
-	size_t p = read_int(argc, argv, "-p", ff_numCores());
-
 	char *savename = read_string(argc, argv, "-o", NULL);
+	size_t p = read_int(argc, argv, "-p", ff_numCores());
+	size_t num_workers = max(1, p - (savename ? 2 : 1));
 
 	particle_t* particles = new particle_t[n];
 	particle_t* particles_next = new particle_t[n];
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 	std::vector<ff::ff_node*> workers;
 	prtcl::ParticlesCollector* collector = NULL;
 
-	for (size_t i = 0; i < p; ++i) {
+	for (size_t i = 0; i < num_workers; ++i) {
 		workers.push_back(new prtcl::SimulatorWorker());
 	}
 
