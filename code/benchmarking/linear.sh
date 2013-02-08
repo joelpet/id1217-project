@@ -5,18 +5,20 @@
 #
 
 function print_usage {
-    echo "Usage: ${0} <executable> [<n_first_exp> <n_last_exp>]"
+    echo "Usage: ${0} <executable> [<first> <increment> <last>)]"
     exit 1
 }
 
 if [ $# -gt 0 ]; then
     executable="$1"
     if [ $# -eq 1 ]; then
-        n_first_exp=0
-        n_last_exp=8
-    elif [ $# -eq 3 ]; then
-        n_first_exp=$2
-        n_last_exp=$3
+        first=1000
+        last=10000
+        increment=1000
+    elif [ $# -eq 4 ]; then
+        first=$2
+        last=$3
+        increment=$4
     else
         print_usage
     fi
@@ -24,13 +26,12 @@ else
     print_usage
 fi
 
-let n_first=100*2**$n_first_exp
-let n_last=100*2**$n_last_exp
-echo "# Benchmarks for $executable with n = [$n_first ... $n_last]"
+sequence=`seq --separator=' ' $first $increment $last`
+
+echo "# Benchmarks for $executable with n = [$sequence]"
 echo "# n     time (s)"
 
-for i in `seq $n_first_exp $n_last_exp`; do
-    let n=100*2**$i
+for n in $sequence; do
     printf "%5d\t" $n
 
     for j in `seq 1 5`; do
