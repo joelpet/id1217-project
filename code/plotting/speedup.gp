@@ -18,4 +18,5 @@ set ylabel "Time in seconds"
 plot \
 "../../benchmarks/speedup/pthreads.dat" title "Pthreads",\
 "../../benchmarks/speedup/openmp.dat" title "OpenMP",\
+"../../benchmarks/speedup/fastflow.dat" title "Fastflow",\
 "../../benchmarks/speedup/mpi.dat" title "MPI"

@@ -40,6 +40,8 @@ for num_proc in `seq $n_proc_first $n_proc_last`; do
         command="$executable -n $num_particles"
     elif [[ $executable == *fastflow* ]]; then
         command="$executable -n $num_particles -p $num_proc"
+    elif [[ $executable == *serial* ]]; then
+        command="$executable -n $num_particles"
     else
         echo "Unrecognized executable: $executable"
         exit
