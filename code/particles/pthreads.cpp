@@ -11,6 +11,7 @@
 //
 int n, s, f, n_threads;
 particle_t * particles;
+particle_t * particles_next;
 prtcl::GridHashSet* grid;
 FILE *fsave;
 pthread_barrier_t barrier;
@@ -53,31 +54,31 @@ void *thread_routine( void *pthread_id )
                 apply_force(particles[i], **neighbors_it);
             }
         }
-        
-        pthread_barrier_wait( &barrier );
-        
+
         //
         //  move particles
         //
-        for( int i = first; i < last; i++ ) 
-            move( particles[i] );
-        
+        for (int i = first; i < last; i++) {
+            particles_next[i] = particles[i];
+            move(particles_next[i]);
+        }
+
         pthread_barrier_wait( &barrier );
         
 
         // Update grid hash set (thread 0).
         if (thread_id == 0) {
             grid->clear();
-            insert_into_grid(n, particles, grid);
+            insert_into_grid(n, particles_next, grid);
+
+            if (fsave && (step % f) == 0) {
+                save(fsave, n, particles_next);
+            }
+
+            std::swap(particles, particles_next);
         }
 
         pthread_barrier_wait( &barrier );
-
-        //
-        //  save if necessary
-        //
-        if( thread_id == 0 && fsave && (step % f) == 0 )
-            save( fsave, n, particles );
     }
     
     return NULL;
@@ -115,6 +116,7 @@ int main( int argc, char **argv )
     fsave = savename ? fopen( savename, "w" ) : NULL;
 
     particles = (particle_t*) malloc( n * sizeof(particle_t) );
+    particles_next = (particle_t*) malloc( n * sizeof(particle_t) );
     set_size( n );
     init_particles( n, particles );
 
