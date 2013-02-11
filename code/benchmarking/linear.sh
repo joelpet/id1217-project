@@ -13,12 +13,12 @@ if [ $# -gt 0 ]; then
     executable="$1"
     if [ $# -eq 1 ]; then
         first=1000
-        last=10000
         increment=1000
+        last=10000
     elif [ $# -eq 4 ]; then
         first=$2
-        last=$3
-        increment=$4
+        increment=$3
+        last=$4
     else
         print_usage
     fi
