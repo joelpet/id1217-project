@@ -35,7 +35,7 @@ for num_proc in `seq $n_proc_first $n_proc_last`; do
         command="mpiexec -n $num_proc $executable -n $num_particles"
     elif [[ $executable == *pthread* ]]; then
         command="$executable -n $num_particles -p $num_proc"
-    elif [[ $executable == *omp* ]]; then
+    elif [[ $executable == *openmp* ]]; then
         export OMP_NUM_THREADS=$num_proc
         command="$executable -n $num_particles"
     elif [[ $executable == *fastflow* ]]; then
