@@ -150,24 +150,14 @@ GridHashSet::surr_iterator::surr_iterator(GridHashSet* grid, particle_t& p,
 	particles_it = grid->grids->at(grid->get_index(r, c))->begin();
 	particles_it_end = grid->grids->at(grid->get_index(r, c))->end();
 
-	// While inner deque iterator points nowhere useful.
-	while (particles_it == particles_it_end || *particles_it == NULL) {
-		// Move to next grid.
-		if (++c > bottom_right_col) {
-			c = top_left_col;
-			++r;
-		}
-
-		if (r > bottom_right_row) {
-			reached_end = true;
-		} else {
-			// Update internal deque (particles) iterators.
-			particles_it = grid->grids->at(grid->get_index(r, c))->begin();
-			particles_it_end = grid->grids->at(grid->get_index(r, c))->end();
-		}
-	}
+	advance_outer_iterator();
 }
 
+/**
+ * Advances the outer iterator one.
+ *
+ * If the end is reached during this operation, the corresponding flag is set.
+ */
 GridHashSet::surr_iterator::~surr_iterator() {
 }
 
@@ -181,23 +171,7 @@ GridHashSet::surr_iterator & GridHashSet::surr_iterator::operator++() {
 	// Increment the inner dequeu (particles) iterator.
 	++particles_it;
 
-	// While inner deque iterator points nowhere useful.
-	while ((particles_it == particles_it_end || *particles_it == NULL)
-			&& !reached_end) {
-		// Move to next grid.
-		if (++c > bottom_right_col) {
-			c = top_left_col;
-			++r;
-		}
-
-		if (r > bottom_right_row) {
-			reached_end = true;
-		} else {
-			// Update internal deque (particles) iterators.
-			particles_it = grid->grids->at(grid->get_index(r, c))->begin();
-			particles_it_end = grid->grids->at(grid->get_index(r, c))->end();
-		}
-	}
+	advance_outer_iterator();
 
 	return *this;
 }
@@ -222,6 +196,27 @@ bool GridHashSet::surr_iterator::operator!=(surr_iterator const & other) {
 /**
  * Fast forwards this iterator to the end and returns a reference to itself.
  */
+void GridHashSet::surr_iterator::advance_outer_iterator() {
+	// While inner deque iterator points nowhere useful.
+	while ((particles_it == particles_it_end || *particles_it == NULL)
+			&& !reached_end) {
+		// Move to next grid.
+		if (++c > bottom_right_col) {
+			c = top_left_col;
+			++r;
+		}
+
+		if (r > bottom_right_row) {
+			reached_end = true;
+			return;
+		} else {
+			// Update internal deque (particles) iterators.
+			particles_it = grid->grids->at(grid->get_index(r, c))->begin();
+			particles_it_end = grid->grids->at(grid->get_index(r, c))->end();
+		}
+	}
+}
+
 GridHashSet::surr_iterator& GridHashSet::surr_iterator::ff_to_end() {
 	// Go one step further than the last grid.
 	r = bottom_right_row + 1;

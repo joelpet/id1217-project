@@ -31,6 +31,7 @@ public:
 		std::deque<particle_t *>::iterator particles_it;
 		std::deque<particle_t *>::iterator particles_it_end;
 
+		void advance_outer_iterator();
 		surr_iterator& ff_to_end();
 	};
 
