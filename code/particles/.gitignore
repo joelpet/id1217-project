@@ -7,6 +7,7 @@ fastflow
 
 .project
 .cproject
+.settings
 output.txt
 
 perf.data
