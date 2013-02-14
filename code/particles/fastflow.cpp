@@ -40,14 +40,14 @@ int main(int argc, char **argv) {
 
 	set_size(n);
 	init_particles(n, particles);
-	int step;
 
 	prtcl::GridHashSet grid(n, size, cutoff);
 
 	double simulation_time = read_timer();
 
-	ff::ff_farm<> simulator_farm;
-	prtcl::ParticlesEmitter emitter(particles, particles_next, n, &grid);
+	ff::ff_farm<> simulator_farm(false, ff::ff_farm<>::DEF_IN_BUFF_ENTRIES,
+			ff::ff_farm<>::DEF_OUT_BUFF_ENTRIES, true);
+	prtcl::ParticlesEmitter emitter(particles, particles_next, n, s, &grid);
 	std::vector<ff::ff_node*> workers;
 	prtcl::ParticlesCollector* collector = NULL;
 
@@ -59,20 +59,15 @@ int main(int argc, char **argv) {
 	simulator_farm.add_workers(workers);
 
 	if (savename) {
-		collector = new prtcl::ParticlesCollector(savename, n, &step, f);
+		collector = new prtcl::ParticlesCollector(savename, n, f);
 		simulator_farm.add_collector(collector);
 	}
 
-	for (step = 0; step < s; ++step) {
-		grid.clear();
-		insert_into_grid(n, particles, &grid);
+	simulator_farm.wrap_around();
 
-		if (simulator_farm.run_and_wait_end() < 0) {
-			ff::error("Something went wrong when computing forces.\n");
-			return -1;
-		}
-
-		std::swap(particles, particles_next);
+	if (simulator_farm.run_and_wait_end() < 0) {
+		ff::error("Particle simulation farm failed.\n");
+		return -1;
 	}
 
 	simulation_time = read_timer() - simulation_time;

@@ -14,11 +14,11 @@ namespace prtcl {
 //
 
 ParticlesEmitter::ParticlesEmitter(particle_t* particles,
-		particle_t* particles_next, size_t num_particles, GridHashSet* grid) :
+		particle_t* particles_next, size_t num_particles, int num_steps,
+		GridHashSet* grid) :
 		m_num_particles(num_particles), m_grid(grid), m_template_task(
-				new ParticlesTask()) {
-	m_template_task->begin = 0;
-	m_template_task->end = 0;
+				new ParticlesTask()), m_num_steps(num_steps), m_step_counter(0), m_tag_counter(
+				0), m_tasks_awaiting(0) {
 	m_template_task->particles = particles;
 	m_template_task->particles_next = particles_next;
 	m_template_task->grid = m_grid;
@@ -30,23 +30,68 @@ ParticlesEmitter::~ParticlesEmitter() {
 	delete m_template_task;
 }
 
-void* ParticlesEmitter::svc(void*) {
-	size_t end = 0;
+/**
+ * Callback from Fastflow farm initialisation.
+ */
+int ParticlesEmitter::svc_init() {
+	m_step_counter = 0;
+	m_tag_counter = 0;
 
-	while (end < m_num_particles) {
-		ParticlesTask* t = new ParticlesTask(*m_template_task);
-		t->begin = end;
-		end += std::min(m_block_size, (m_num_particles - end));
-		t->end = end;
+	return 0;
+}
 
-		// Push the task to the emitter's output buffer, which is built upon a
-		// SWSR lock-free (wait-free) (un)bounded FIFO queue.
-		ff_send_out(t);
+void* ParticlesEmitter::svc(void* task) {
+	ParticlesTask* t;
+
+	if (task == NULL) {
+		size_t end = 0;
+
+		while (end < m_num_particles) {
+			t = new ParticlesTask(*m_template_task);
+			t->tag = m_tag_counter++;
+			t->step = m_step_counter; // 0
+			t->begin = end;
+			end += std::min(m_block_size, (m_num_particles - end));
+			t->end = end;
+
+			// Push the task to the emitter's output buffer, which is built upon a
+			// SWSR lock-free (wait-free) (un)bounded FIFO queue.
+			ff_send_out(t);
+		}
+
+		m_tasks_awaiting.resize(m_tag_counter, true);
+		m_tasks.resize(m_tag_counter);
+
+		return GO_ON ;
+	} else {
+		t = static_cast<ParticlesTask*>(task);
+
+		m_tasks[t->tag] = t;
+		m_tasks_awaiting[t->tag] = false;
+
+		if (!m_tasks_awaiting.any()) {
+			if (++m_step_counter + 1 > m_num_steps) {
+				for (TaskVector::iterator it = m_tasks.begin();
+						it < m_tasks.end(); ++it) {
+					delete (*it);
+				}
+				return EOS ; // End-Of-Stream (simulation)
+			}
+
+			m_tasks_awaiting.set();
+			m_grid->clear();
+			insert_into_grid(m_num_particles, t->particles_next, t->grid);
+
+			for (TaskVector::iterator it = m_tasks.begin(); it < m_tasks.end();
+					++it) {
+				(*it)->step++;
+				std::swap((*it)->particles, (*it)->particles_next);
+				ff_send_out(*it);
+			}
+		}
+
+		return GO_ON ;
 	}
-
-	std::swap(m_template_task->particles, m_template_task->particles_next);
-
-	return EOS ;
 }
 
 //
@@ -74,17 +119,17 @@ void* SimulatorWorker::svc(void* task) {
 		move(t->particles_next[i]);
 	}
 
-	return t;
+	return task;
 }
 
 //
 // Collector
 //
 
-ParticlesCollector::ParticlesCollector(char* savename, int n, int* step, int f) :
+ParticlesCollector::ParticlesCollector(char* savename, int n, int f) :
 		m_outfile(savename), m_line_length(
-				2 * (ParticlesCollector::COORDINATE_PRECISION + 6) + 2), m_n(n), m_step(
-				step), m_frequency(f) {
+				2 * (ParticlesCollector::COORDINATE_PRECISION + 6) + 2), m_n(n), m_frequency(
+				f) {
 	m_outfile << n << " " << size << std::endl;
 	m_header_offset = m_outfile.tellp();
 
@@ -99,9 +144,9 @@ ParticlesCollector::~ParticlesCollector() {
 void* ParticlesCollector::svc(void* task) {
 	ParticlesTask* t = static_cast<ParticlesTask*>(task);
 
-	if (*m_step % m_frequency == 0) {
+	if (t->step % m_frequency == 0) {
 		int begin_offset = m_header_offset
-				+ (*m_step / m_frequency) * m_n * m_line_length
+				+ (t->step / m_frequency) * m_n * m_line_length
 				+ t->begin * m_line_length;
 		m_outfile.seekp(begin_offset);
 
@@ -115,8 +160,7 @@ void* ParticlesCollector::svc(void* task) {
 		}
 	}
 
-	delete t;
-	return GO_ON ;
+	return task;
 }
 
 }
