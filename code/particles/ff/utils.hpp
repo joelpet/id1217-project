@@ -47,7 +47,7 @@ static inline ticks ticks_wait(ticks t1) {
     ticks delta;
     ticks t0 = getticks();
 	//std::cerr << "should wait " << t1 << " at " << t0 << "\n";
-    do { delta = (getticks()) - t0; } while (delta < t1);
+    do { pthread_yield(); delta = (getticks()) - t0; } while (delta < t1);
     return delta-t1;
 }
 
