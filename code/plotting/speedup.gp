@@ -4,19 +4,24 @@
 #
 
 # LaTeX
-set terminal eepic color
-set output "../../report/plots/speedup.tex"
+#set terminal eepic color
+#set output "../../report/plots/speedup.tex"
+
+# PDF
+set terminal pdfcairo
 
 # Misc settings
-set key right top
+set key right center
 set grid xtics ytics
-set yrange [0:80]
-set xlabel "Number of workers"
-set ylabel "Time in seconds"
+#set yrange [0:80]
+set xlabel "Number of threads"
+set ylabel "Time (seconds)"
 
 
 plot \
 "../../benchmarks/speedup/pthreads.dat" title "Pthreads",\
 "../../benchmarks/speedup/openmp.dat" title "OpenMP",\
 "../../benchmarks/speedup/fastflow.dat" title "Fastflow",\
-"../../benchmarks/speedup/mpi.dat" title "MPI"
+"../../benchmarks/speedup/serial.dat" title "Serial"
+
+#"../../benchmarks/speedup/mpi.dat" title "MPI"

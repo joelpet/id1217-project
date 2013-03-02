@@ -4,19 +4,24 @@
 #
 
 # LaTeX
-set terminal eepic color
-set output "../../report/plots/linear.tex"
+#set terminal eepic color
+#set output "../../report/plots/linear.tex"
+
+# PDF
+set terminal pdfcairo
 
 # Misc settings
-set log xy
+#set log xy
 set key left top
 set grid xtics ytics
 set xlabel "Number of particles (n)"
-set ylabel "Time in seconds"
+set ylabel "Time (seconds)"
 
 
 plot \
-"../../benchmarks/linear/serial.dat" title "Serial",\
 "../../benchmarks/linear/pthreads.dat" title "Pthreads",\
 "../../benchmarks/linear/openmp.dat" title "OpenMP",\
-"../../benchmarks/linear/mpi.dat" title "MPI"
+"../../benchmarks/linear/fastflow.dat" title "Fastflow",\
+"../../benchmarks/linear/serial.dat" title "Serial"
+
+#"../../benchmarks/linear/mpi.dat" title "MPI",\
