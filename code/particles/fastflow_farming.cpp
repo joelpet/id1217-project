@@ -15,10 +15,11 @@ namespace prtcl {
 
 ParticlesEmitter::ParticlesEmitter(particle_t* particles,
 		particle_t* particles_next, size_t num_particles, int num_steps,
-		GridHashSet* grid) :
-		m_num_particles(num_particles), m_grid(grid), m_template_task(
+		GridHashSet* grid, FILE* fsave, int save_frequency) :
+		m_particles(particles), m_num_particles(num_particles), m_grid(grid), m_template_task(
 				new ParticlesTask()), m_num_steps(num_steps), m_step_counter(0), m_tag_counter(
-				0), m_tasks_awaiting(0) {
+				0), m_tasks_awaiting(0), m_fsave(fsave), m_save_frequency(
+				save_frequency) {
 	m_template_task->particles = particles;
 	m_template_task->particles_next = particles_next;
 	m_template_task->grid = m_grid;
@@ -59,6 +60,10 @@ void* ParticlesEmitter::svc(void* task) {
 			ff_send_out(t);
 		}
 
+        if (m_fsave) {
+            save(m_fsave, m_num_particles, m_particles);
+        }
+
 		m_tasks_awaiting.resize(m_tag_counter, true);
 		m_tasks.resize(m_tag_counter);
 
@@ -87,6 +92,10 @@ void* ParticlesEmitter::svc(void* task) {
 				(*it)->step++;
 				std::swap((*it)->particles, (*it)->particles_next);
 				ff_send_out(*it);
+			}
+
+			if (m_fsave && m_step_counter % m_save_frequency == 0) {
+				save(m_fsave, m_num_particles, m_particles);
 			}
 		}
 

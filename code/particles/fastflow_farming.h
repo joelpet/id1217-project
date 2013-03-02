@@ -44,6 +44,7 @@ struct ParticlesTask {
 class ParticlesEmitter: public ff::ff_node {
 	typedef std::vector<ParticlesTask*> TaskVector;
 
+	particle_t* m_particles;
 	size_t m_num_particles;
 	GridHashSet* m_grid;
 	ParticlesTask* m_template_task;
@@ -54,8 +55,12 @@ class ParticlesEmitter: public ff::ff_node {
 	boost::dynamic_bitset<> m_tasks_awaiting;
 	TaskVector m_tasks;
 
+	FILE * m_fsave;
+	int m_save_frequency;
+
 public:
-	ParticlesEmitter(particle_t*, particle_t*, size_t, int, GridHashSet*);
+	ParticlesEmitter(particle_t*, particle_t*, size_t, int, GridHashSet*, FILE*,
+			int);
 	virtual ~ParticlesEmitter();
 	virtual int svc_init();
 	virtual void* svc(void*);
