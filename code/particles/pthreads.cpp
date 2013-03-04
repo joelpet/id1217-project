@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <time.h>
 
 //
 //  global variables
@@ -15,6 +17,9 @@ particle_t * particles_next;
 prtcl::GridHashSet* grid;
 FILE *fsave;
 pthread_barrier_t barrier;
+double fst_barrier_wait_time[2];
+double snd_barrier_wait_time[2];
+double barrier_wait_time_total = 0;
 
 //
 //  check that pthreads routine call was successful
@@ -32,11 +37,18 @@ void *thread_routine( void *pthread_id )
     int first = min(  thread_id    * particles_per_thread, n );
     int last  = min( (thread_id+1) * particles_per_thread, n );
     
+    struct timeval now;
+
     //
     //  simulate a number of time steps
     //
     for( int step = 0; step < s; step++ )
     {
+        gettimeofday(&now, NULL);
+        fst_barrier_wait_time[thread_id] = (now.tv_sec)
+				+ 1.0e-6 * (now.tv_usec);
+        pthread_barrier_wait(&barrier);
+
         //
         //  compute forces
         //
@@ -63,6 +75,8 @@ void *thread_routine( void *pthread_id )
             move(particles_next[i]);
         }
 
+        gettimeofday(&now, NULL);
+        snd_barrier_wait_time[thread_id] = (now.tv_sec) + 1.0e-6 * (now.tv_usec);
         pthread_barrier_wait( &barrier );
         
 
@@ -71,6 +85,10 @@ void *thread_routine( void *pthread_id )
             grid->clear();
             insert_into_grid(n, particles_next, grid);
 
+			barrier_wait_time_total += fabs(
+					fst_barrier_wait_time[0] - fst_barrier_wait_time[1])
+					+ fabs(snd_barrier_wait_time[0] - snd_barrier_wait_time[1]);
+
             if (fsave && (step % f) == 0) {
                 save(fsave, n, particles_next);
             }
@@ -78,9 +96,8 @@ void *thread_routine( void *pthread_id )
             std::swap(particles, particles_next);
         }
 
-        pthread_barrier_wait( &barrier );
     }
-    
+
     return NULL;
 }
 
@@ -146,7 +163,7 @@ int main( int argc, char **argv )
         P( pthread_join( threads[i], NULL ) );
     simulation_time = read_timer( ) - simulation_time;
     
-    printf("n = %d, steps = %d, savefreq = %d, n_threads = %d, simulation time = %g seconds\n", n, s, f, n_threads, simulation_time);
+    printf("n = %d, steps = %d, savefreq = %d, n_threads = %d, simulation time = %g seconds, barrier wait time = %g\n", n, s, f, n_threads, simulation_time, barrier_wait_time_total);
     
     //
     //  release resources
