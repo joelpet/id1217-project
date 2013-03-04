@@ -32,8 +32,9 @@ int main(int argc, char **argv) {
 	int s = read_int(argc, argv, "-s", NSTEPS);
 	int f = read_int(argc, argv, "-f", SAVEFREQ);
 	char *savename = read_string(argc, argv, "-o", NULL);
+    FILE *fsave = savename ? fopen( savename, "w" ) : NULL;
 	size_t p = read_int(argc, argv, "-p", ff_numCores());
-	size_t num_workers = max(1, p - (savename ? 2 : 1));
+	size_t num_workers = max(1, p - 1);
 
 	particle_t* particles = new particle_t[n];
 	particle_t* particles_next = new particle_t[n];
@@ -49,7 +50,6 @@ int main(int argc, char **argv) {
 	ff::ff_farm<> simulator_farm;
 	prtcl::ParticlesEmitter emitter(particles, particles_next, n, &grid);
 	std::vector<ff::ff_node*> workers;
-	prtcl::ParticlesCollector* collector = NULL;
 
 	for (size_t i = 0; i < num_workers; ++i) {
 		workers.push_back(new prtcl::SimulatorWorker());
@@ -57,11 +57,6 @@ int main(int argc, char **argv) {
 
 	simulator_farm.add_emitter(&emitter);
 	simulator_farm.add_workers(workers);
-
-	if (savename) {
-		collector = new prtcl::ParticlesCollector(savename, n, &step, f);
-		simulator_farm.add_collector(collector);
-	}
 
 	for (step = 0; step < s; ++step) {
 		grid.clear();
@@ -72,6 +67,10 @@ int main(int argc, char **argv) {
 			return -1;
 		}
 
+        if (fsave && (step % f) == 0) {
+            save(fsave, n, particles_next);
+        }
+
 		std::swap(particles, particles_next);
 	}
 
@@ -80,10 +79,6 @@ int main(int argc, char **argv) {
 	printf(
 			"n = %d, steps = %d, savefreq = %d, simulation time = %g seconds, num_workers = %d\n",
 			n, s, f, simulation_time, simulator_farm.getNWorkers());
-
-	if (collector) {
-		delete collector;
-	}
 
 	delete[] particles;
 	delete[] particles_next;

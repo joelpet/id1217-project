@@ -47,24 +47,6 @@ public:
 	virtual void* svc(void*);
 };
 
-class ParticlesCollector: public ff::ff_node {
-	static const int COORDINATE_PRECISION = 8;
-
-	std::ofstream m_outfile;
-	long m_header_offset;
-	int m_line_length;
-
-	int m_n;
-	int* m_step;
-	int m_frequency;
-
-public:
-	ParticlesCollector(char* savename, int n, int* step, int f);
-	virtual ~ParticlesCollector();
-
-	virtual void* svc(void*);
-};
-
 }
 
 #endif /* FASTFLOW_FARMING_H_ */
