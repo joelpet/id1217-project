@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 	char *savename = read_string(argc, argv, "-o", NULL);
 	FILE* fsave = savename ? fopen(savename, "w") : NULL;
 	size_t p = read_int(argc, argv, "-p", ff_numCores());
-	size_t num_workers = max(1, p - (savename ? 2 : 1));
+	size_t num_workers = max(1, p - 1);
 
 	particle_t* particles = new particle_t[n];
 	particle_t* particles_next = new particle_t[n];
