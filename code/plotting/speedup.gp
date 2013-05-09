@@ -15,7 +15,7 @@ set key right center
 set grid xtics ytics
 #set yrange [0:80]
 set xlabel "Number of threads"
-set ylabel "Time (seconds)"
+set ylabel "Time (s)"
 
 
 plot \

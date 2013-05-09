@@ -14,8 +14,8 @@ set terminal pdfcairo
 #set log xy
 set key left top
 set grid xtics ytics
-set xlabel "Number of particles (n)"
-set ylabel "Time (seconds)"
+set xlabel "Number of particles"
+set ylabel "Time (s)"
 
 
 plot \
