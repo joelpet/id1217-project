@@ -54,9 +54,11 @@ int main( int argc, char **argv )
             // Iterate over all neighbors in the surrounding of current particle.
             // This should be constant w.r.t. n.
             prtcl::GridHashSet::surr_iterator neighbors_it;
+            prtcl::GridHashSet::surr_iterator neighbors_it_end = grid->surr_end(
+                                particles[i]);
+
             for (neighbors_it = grid->surr_begin(particles[i]);
-                    neighbors_it != grid->surr_end(particles[i]);
-                    ++neighbors_it) { 
+                    neighbors_it != neighbors_it_end; ++neighbors_it) {
                 apply_force(particles[i], **neighbors_it);
             }
         }
