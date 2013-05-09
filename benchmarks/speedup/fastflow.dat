@@ -1,10 +1,9 @@
-# Benchmarks for ./fastflow with num_particles = 10000, and n_proc = [1 ... 8]
+# Benchmarks for ../particles/fastflow with num_particles = 10000, and n_proc = [2 ... 8]
 # n_proc  time (s)
-  1		19.790400
-  2		19.785700
-  3		11.078800
-  4		8.065520
-  5		6.649380
-  6		7.805550
-  7		6.874960
-  8		6.301480
+  2		20.356300
+  3		11.327300
+  4		8.253330
+  5		6.763730
+  6		7.907170
+  7		6.947890
+  8		6.376930

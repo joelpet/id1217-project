@@ -1,10 +1,9 @@
-# Benchmarks for ./openmp with num_particles = 10000, and n_proc = [1 ... 8]
+# Benchmarks for ../particles/openmp with num_particles = 10000, and n_proc = [1 ... 8]
 # n_proc  time (s)
-  1		42.340800
-  2		22.438300
-  3		15.516400
-  4		12.110200
-  5		14.464900
-  6		12.634400
-  7		11.160500
-  8		10.023100
+  2		10.864600
+  3		7.844580
+  4		6.361250
+  5		7.399630
+  6		6.667210
+  7		6.027120
+  8		5.531600

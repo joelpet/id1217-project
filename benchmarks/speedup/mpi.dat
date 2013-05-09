@@ -1,10 +1,9 @@
-# Benchmarks for ./mpi with num_particles = 10000, and n_proc = [1 ... 8]
+# Benchmarks for ../particles/mpi with num_particles = 10000, and n_proc = [1 ... 8]
 # n_proc  time (s)
-  1		72.114300
-  2		37.737200
-  3		26.362000
-  4		20.651300
-  5		17.646000
-  6		15.803200
-  7		13.872200
-  8		13.764500
+  2		22.795000
+  3		17.047200
+  4		14.202000
+  5		16.823700
+  6		15.370700
+  7		14.112300
+  8		13.200500
